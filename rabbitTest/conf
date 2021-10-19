@@ -1,0 +1,6 @@
+{
+    "url": "amqp://test:test@localhost:5672/it490",
+    "exchange": "NetworkLog",
+    "queue": "NetworkLog",
+    "key": "*"
+}
