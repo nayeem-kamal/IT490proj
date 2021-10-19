@@ -8,7 +8,7 @@ import json
 import pika
 from pika.exchange_type import ExchangeType
 
-LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
+LOG_FORMAT = (' %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
 LOGGER = logging.getLogger(__name__)
 
@@ -26,18 +26,19 @@ class ExampleConsumer(object):
     commands that were issued and that should surface in the output as well.
 
     """
-    EXCHANGE = 'message'
-    EXCHANGE_TYPE = ExchangeType.topic
-    QUEUE = 'text'
-    ROUTING_KEY = 'example.text'
+    
 
-    def __init__(self, amqp_url):
+    def __init__(self, amqp_url,exchangeIn,eType,queueIn,keyIn):
         """Create a new instance of the consumer class, passing in the AMQP
         URL used to connect to RabbitMQ.
 
         :param str amqp_url: The AMQP url to connect with
 
         """
+        self.EXCHANGE = exchangeIn
+        self.EXCHANGE_TYPE = eType
+        self.QUEUE = queueIn
+        self.ROUTING_KEY = keyIn
         self.should_reconnect = False
         self.was_consuming = False
 
@@ -93,7 +94,7 @@ class ExampleConsumer(object):
         :param Exception err: The error
 
         """
-        LOGGER.error('Connection open failed: %s', err)
+        LOGGER.error('Connection open failed: ')
         self.reconnect()
 
     def on_connection_closed(self, _unused_connection, reason):
@@ -110,7 +111,7 @@ class ExampleConsumer(object):
         if self._closing:
             self._connection.ioloop.stop()
         else:
-            LOGGER.warning('Connection closed, reconnect necessary: %s', reason)
+            LOGGER.warning('\n\n\n\n\n\n\nConnection closed, reconnect necessary: %s', reason)
             self.reconnect()
 
     def reconnect(self):
@@ -128,7 +129,7 @@ class ExampleConsumer(object):
         on_channel_open callback will be invoked by pika.
 
         """
-        LOGGER.info('Creating a new channel')
+        #LOGGER.info('Creating a new channel')
         self._connection.channel(on_open_callback=self.on_channel_open)
 
     def on_channel_open(self, channel):
@@ -140,7 +141,7 @@ class ExampleConsumer(object):
         :param pika.channel.Channel channel: The channel object
 
         """
-        LOGGER.info('Channel opened')
+        #LOGGER.info('Channel opened')
         self._channel = channel
         self.add_on_channel_close_callback()
         self.setup_exchange(self.EXCHANGE)
@@ -150,7 +151,7 @@ class ExampleConsumer(object):
         RabbitMQ unexpectedly closes the channel.
 
         """
-        LOGGER.info('Adding channel close callback')
+        #LOGGER.info('Adding channel close callback')
         self._channel.add_on_close_callback(self.on_channel_closed)
 
     def on_channel_closed(self, channel, reason):
@@ -164,7 +165,7 @@ class ExampleConsumer(object):
         :param Exception reason: why the channel was closed
 
         """
-        LOGGER.warning('Channel %i was closed: %s', channel, reason)
+        #LOGGER.warning('Channel %i was closed: %s', channel, reason)
         self.close_connection()
 
     def setup_exchange(self, exchange_name):
@@ -175,7 +176,7 @@ class ExampleConsumer(object):
         :param str|unicode exchange_name: The name of the exchange to declare
 
         """
-        LOGGER.info('Declaring exchange: %s', exchange_name)
+        #LOGGER.info('Declaring exchange: %s', exchange_name)
         # Note: using functools.partial is not required, it is demonstrating
         # how arbitrary data can be passed to the callback when it is called
         cb = functools.partial(
@@ -193,7 +194,7 @@ class ExampleConsumer(object):
         :param str|unicode userdata: Extra user data (exchange name)
 
         """
-        LOGGER.info('Exchange declared: %s', userdata)
+        LOGGER.info('\n\n\n\n\n\nExchange declared: %s', userdata)
         self.setup_queue(self.QUEUE)
 
     def setup_queue(self, queue_name):
@@ -204,7 +205,7 @@ class ExampleConsumer(object):
         :param str|unicode queue_name: The name of the queue to declare.
 
         """
-        LOGGER.info('Declaring queue %s', queue_name)
+       # LOGGER.info('Declaring queue %s', queue_name)
         cb = functools.partial(self.on_queue_declareok, userdata=queue_name)
         self._channel.queue_declare(queue=queue_name, callback=cb)
 
@@ -220,8 +221,8 @@ class ExampleConsumer(object):
 
         """
         queue_name = userdata
-        LOGGER.info('Binding %s to %s with %s', self.EXCHANGE, queue_name,
-                    self.ROUTING_KEY)
+        #LOGGER.info('Binding %s to %s with %s', self.EXCHANGE, queue_name,
+            #        self.ROUTING_KEY)
         cb = functools.partial(self.on_bindok, userdata=queue_name)
         self._channel.queue_bind(
             queue_name,
@@ -258,7 +259,7 @@ class ExampleConsumer(object):
         :param pika.frame.Method _unused_frame: The Basic.QosOk response frame
 
         """
-        LOGGER.info('QOS set to: %d', self._prefetch_count)
+       # LOGGER.info('QOS set to: %d', self._prefetch_count)
         self.start_consuming()
 
     def start_consuming(self):
@@ -271,7 +272,7 @@ class ExampleConsumer(object):
         will invoke when a message is fully received.
 
         """
-        LOGGER.info('Issuing consumer related RPC commands')
+       # LOGGER.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
         self._consumer_tag = self._channel.basic_consume(
             self.QUEUE, self.on_message)
@@ -284,7 +285,7 @@ class ExampleConsumer(object):
         on_consumer_cancelled will be invoked by pika.
 
         """
-        LOGGER.info('Adding consumer cancellation callback')
+       # LOGGER.info('Adding consumer cancellation callback')
         self._channel.add_on_cancel_callback(self.on_consumer_cancelled)
 
     def on_consumer_cancelled(self, method_frame):
@@ -324,7 +325,7 @@ class ExampleConsumer(object):
         :param int delivery_tag: The delivery tag from the Basic.Deliver frame
 
         """
-        LOGGER.info('Acknowledging message %s', delivery_tag)
+        LOGGER.info('Acknowledging message \n', delivery_tag)
         self._channel.basic_ack(delivery_tag)
 
     def stop_consuming(self):
@@ -333,7 +334,7 @@ class ExampleConsumer(object):
 
         """
         if self._channel:
-            LOGGER.info('Sending a Basic.Cancel RPC command to RabbitMQ')
+         #   LOGGER.info('Sending a Basic.Cancel RPC command to RabbitMQ')
             cb = functools.partial(
                 self.on_cancelok, userdata=self._consumer_tag)
             self._channel.basic_cancel(self._consumer_tag, cb)
@@ -350,7 +351,7 @@ class ExampleConsumer(object):
         """
         self._consuming = False
         LOGGER.info(
-            'RabbitMQ acknowledged the cancellation of the consumer: %s',
+            'RabbitMQ acknowledged the cancellation of the consumer',
             userdata)
         self.close_channel()
 
@@ -398,10 +399,14 @@ class ReconnectingExampleConsumer(object):
 
     """
 
-    def __init__(self, amqp_url):
+    def __init__(self, amqp_url,exchangeIn,eType,queueIn,keyIn):
         self._reconnect_delay = 0
         self._amqp_url = amqp_url
-        self._consumer = ExampleConsumer(self._amqp_url)
+        self.EXCHANGE = exchangeIn
+        self.EXCHANGE_TYPE = eType
+        self.QUEUE = queueIn
+        self.ROUTING_KEY = keyIn
+        self._consumer = ExampleConsumer(self._amqp_url,self.EXCHANGE,self.EXCHANGE_TYPE,self.QUEUE,self.ROUTING_KEY)
 
     def run(self):
         while True:
@@ -418,7 +423,7 @@ class ReconnectingExampleConsumer(object):
             reconnect_delay = self._get_reconnect_delay()
             LOGGER.info('Reconnecting after %d seconds', reconnect_delay)
             time.sleep(reconnect_delay)
-            self._consumer = ExampleConsumer(self._amqp_url)
+            self._consumer = ExampleConsumer(self._amqp_url,self.EXCHANGE,self.EXCHANGE_TYPE,self.QUEUE,self.ROUTING_KEY)
 
     def _get_reconnect_delay(self):
         if self._consumer.was_consuming:
@@ -429,16 +434,22 @@ class ReconnectingExampleConsumer(object):
             self._reconnect_delay = 30
         return self._reconnect_delay
 
-def getURL():
+def getConfig():
 
     fileObject = open("./rabbit.config", "r")
     urlArr = json.load(fileObject)
-    return urlArr["url"]
+    return urlArr
 
 def main():
     logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
-    amqp_url = getURL()
-    consumer = ReconnectingExampleConsumer(amqp_url)
+    config = getConfig()
+    amqp_url = config["url"]
+    exchange=config["exchange"]
+    queue=config["queue"]
+    key = config["key"]
+
+    
+    consumer = ReconnectingExampleConsumer(amqp_url,exchange,ExchangeType.fanout,queue,key)
     consumer.run()
 
 
