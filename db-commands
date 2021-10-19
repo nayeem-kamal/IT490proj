@@ -1,0 +1,16 @@
+/* sql commands to build database */
+Create database kommando;
+Create user 'jal97' identified by 'jal97';
+Create user 'nhk6' identified by 'nhk6';
+Create user 'pdp72' identified by 'pdp72';
+Create user 'id55'identified by 'id55';
+
+grant all on kommando.* to 'jal97', 'pdp72', 'nhk6', 'id55';
+/* gave access twice to make sure all users had access to db */
+
+
+grant all on kommando.* to 'jal97';
+grant all on kommando.* to 'nhk6';
+grant all on kommando.* to 'pdp72';
+grant all on kommando.* to 'id55';
+
