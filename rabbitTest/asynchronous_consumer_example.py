@@ -10,6 +10,12 @@ from pika.exchange_type import ExchangeType
 
 LOG_FORMAT = (' %(funcName) '
               '-35s %(lineno) -5d: %(message)s')
+
+logging.basicConfig(filename="consumer_log",
+                            filemode='a',
+                            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.DEBUG)
 LOGGER = logging.getLogger(__name__)
 
 
