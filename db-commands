@@ -25,7 +25,7 @@ Create table `users` (
     `password` varchar(60) NOT NULL,
     `firstName` varchar(45) DEFAULT NULL,
     `lastName` varchar(45) DEFAULT NULL,
-    `Public` tinyint DEFAULT '0', --NEEDS TO BE CHANGED TO DEFAULT NULL
+    `Public` tinyint DEFAULT NULL, 
     `admin` tinyint DEFAULT '0',
     `deactivated` tinyint DEFAULT '0',
     PRIMARY KEY (`id`)
