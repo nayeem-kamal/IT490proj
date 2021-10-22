@@ -32,3 +32,19 @@ Create table `users` (
     UNIQUE KEY `username` (`username`),
     UNIQUE KEY `email` (`email`) 
 );
+
+-- added Accounts table
+CREATE TABLE `Accounts` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `account_number` varchar(12) DEFAULT NULL,
+  `username` int DEFAULT NULL,
+  `balance` float DEFAULT '0',
+  `account_type` varchar(255) DEFAULT 'Bitcoin',
+  `created` datetime DEFAULT CURRENT_TIMESTAMP,
+  `modified` datetime DEFAULT NULL,
+  `closed` tinyint DEFAULT '0',
+  `freeze` tinyint DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `account_number` (`account_number`),
+  KEY `username` (`username`)
+);
