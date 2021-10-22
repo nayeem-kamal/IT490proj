@@ -48,3 +48,17 @@ CREATE TABLE `Accounts` (
   UNIQUE KEY `account_number` (`account_number`),
   KEY `username` (`username`)
 );
+
+-- added Transactions table
+CREATE TABLE `transactions` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `source` int NOT NULL,             
+  `destination` int NOT NULL,         
+  `totalCost` float NOT NULL,        
+  `transactionType` varchar(255) DEFAULT NULL, 
+  `intitialCost` float NOT NULL,        
+  `created` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `source` (`source`),
+  KEY `destination` (`destination`)
+);
