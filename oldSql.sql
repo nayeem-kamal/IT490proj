@@ -1,19 +1,17 @@
 CREATE TABLE `Accounts` (
   `id` int NOT NULL AUTO_INCREMENT,
   `account_number` varchar(12) DEFAULT NULL,
-  `user_id` int DEFAULT NULL,
+  `username` int DEFAULT NULL,
   `balance` float DEFAULT '0',
-  `account_type` varchar(255) DEFAULT 'Checking',
+  `account_type` varchar(255) DEFAULT 'Bitcoin',
   `created` datetime DEFAULT CURRENT_TIMESTAMP,
   `modified` datetime DEFAULT NULL,
-  `apy` varchar(45) DEFAULT '-',
   `closed` tinyint DEFAULT '0',
   `freeze` tinyint DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `account_number` (`account_number`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `Accounts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `username` (`username`),
+);
 CREATE TABLE `roles` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
