@@ -35,4 +35,6 @@ body{
     border: rgb(33, 37, 41);
     padding-bottom: 3rem;
 }
-
+.list-group-item:hover{
+    background-image: linear-gradient(to bottom left, rgb(33, 37, 41), rgb(24, 26, 27));
+}
