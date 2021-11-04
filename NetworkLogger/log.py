@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 import pika
 import sys
+import datetime
 
 
-def log(message1):
+def log(un,message1):
 
     # change un to urs and password too
-    un = 'logreader'
-    credentials = pika.PlainCredentials('logreader', 'logreader')
+    credentials = pika.PlainCredentials(un, un)
     parameters = pika.ConnectionParameters('localhost',
                                            5672,
                                            'it490',
@@ -22,7 +22,7 @@ def log(message1):
 
         channel.exchange_declare(exchange='NetworkLog', exchange_type='fanout')
 
-        message = un+': '+message1
+        message = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"      "+un+': '+message1
         channel.basic_publish(exchange='NetworkLog',
                               routing_key='*', body=message)
         print(" [x] Sent %r" % message)
@@ -34,4 +34,4 @@ def log(message1):
             connection.close()
         return False
 
-
+log('logreader','yer')

@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 import pika
 import logging
+import json
 
-credentials = pika.PlainCredentials("test", 'test')
-parameters = pika.ConnectionParameters('localhost',
+un='logreader'
+credentials = pika.PlainCredentials(un,un )
+parameters = pika.ConnectionParameters('192.168.194.195',
                                        5672,
                                        'it490',
                                        credentials)
