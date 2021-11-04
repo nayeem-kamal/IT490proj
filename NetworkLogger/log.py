@@ -8,7 +8,7 @@ def log(un,message1):
 
     # change un to urs and password too
     credentials = pika.PlainCredentials(un, un)
-    parameters = pika.ConnectionParameters('localhost',
+    parameters = pika.ConnectionParameters('192.168.194.195',
                                            5672,
                                            'it490',
                                            credentials)
@@ -34,4 +34,3 @@ def log(un,message1):
             connection.close()
         return False
 
-log('logreader','yer')
