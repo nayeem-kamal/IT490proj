@@ -9,9 +9,21 @@ import json
 import pprint 
 import os
 from time import time, sleep
+import cryptocompare
+import datetime
+
+
 global data_cache
 data_cache={}
+global historical_data_cache
+historical_data_cache={}
 
+cryptocompare.cryptocompare._set_api_key_parameter('4445849e8c74ebfe227262a54942daedfd50da463d3777b068c667e6d4495b2a')
+historical_data_cache=cryptocompare.get_historical_price_day('BTC', 'USD', limit=1000, exchange='CCCAGG')
+with open("datahistory.json","w+") as datafile:
+    datafile.write(json.dumps(historical_data_cache))
+            
+print(historical_data_cache)
 def cache_data():
     global data_cache
     while True:
@@ -27,7 +39,7 @@ def cache_data():
             'X-CMC_PRO_API_KEY': key,
         }
         parameters = {
-        'id':'1,2,3,4'
+        'symbol':'BTC,ETH'
 
         }
 
@@ -39,7 +51,7 @@ def cache_data():
             pp.pprint(data_cache)
 
             with open("data.json","w+") as datafile:
-                datafile.write(json.dumps(data))
+                datafile.write(json.dumps(data_cache))
             
 
         except (ConnectionError, Timeout, TooManyRedirects) as e:
@@ -52,36 +64,36 @@ x = threading.Thread(target=cache_data)
 x.start()
 
 
-un='logreader'
-credentials = pika.PlainCredentials(un,un )
-parameters = pika.ConnectionParameters('192.168.194.195',
-                                       5672,
-                                       'it490',
-                                       credentials)
-connection = pika.BlockingConnection(parameters)
-channel = connection.channel()
+# un='logreader'
+# credentials = pika.PlainCredentials(un,un )
+# parameters = pika.ConnectionParameters('192.168.194.195',
+#                                        5672,
+#                                        'it490',
+#                                        credentials)
+# connection = pika.BlockingConnection(parameters)
+# channel = connection.channel()
 
-channel.exchange_declare(exchange='NetworkLog', exchange_type='fanout')
+# channel.exchange_declare(exchange='NetworkLog', exchange_type='fanout')
 
-result = channel.queue_declare(queue='NetworkLog', exclusive=False)
-queue_name = result.method.queue
+# result = channel.queue_declare(queue='NetworkLog', exclusive=False)
+# queue_name = result.method.queue
 
-channel.queue_bind(exchange='NetworkLog', queue=queue_name)
+# channel.queue_bind(exchange='NetworkLog', queue=queue_name)
 
-print(' [*] Waiting for logs. To exit press CTRL+C')
-
-
-def log(body):
-    with open("network.log", 'a') as file1:
-        file1.write("\n%r" % body)
+# print(' [*] Waiting for logs. To exit press CTRL+C')
 
 
-def callback(ch, method, properties, body):
-    print(" [x] %r" % body)
-    log(body)
+# def log(body):
+#     with open("network.log", 'a') as file1:
+#         file1.write("\n%r" % body)
 
 
-channel.basic_consume(
-    queue=queue_name, on_message_callback=callback, auto_ack=True)
+# def callback(ch, method, properties, body):
+#     print(" [x] %r" % body)
+#     log(body)
 
-channel.start_consuming()
+
+# channel.basic_consume(
+#     queue=queue_name, on_message_callback=callback, auto_ack=True)
+
+# channel.start_consuming()
