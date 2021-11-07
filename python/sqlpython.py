@@ -83,11 +83,21 @@ class DBTransactor:
             print("Failed to insert into MySQL table {}".format(error))
             return False
 
+    def register(self, firstName, lastName, un, email, password):
+        conn = self.get_connection()
+        cursor = self.get_cursor(conn)
+        mySql_insert_query = """INSERT INTO users (firstName, lastName, un, email, password
+                                VALUES(%s, %s, %s, %s, %s)"""
+        self.execute_sql_with_open_connection(conn, mySql_insert_query, (firstName,), (lastName,), (un,), (email,) (password,) )
+    
+
+
+
     def get_User(self, un, pwd):
         try:
             conn = self.get_connection()
             cursor = self.get_cursor(conn)
-            query = """"select name, password from user where username = %s and password = %s """
+            query = """"select name and password from user where username = %s and password = %s """
             params = (un, pwd)
             self.execute_sql_with_open_connection(cursor, query, params)
             columns = cursor.fetchone()
