@@ -11,22 +11,28 @@ import cryptocompare
 import datetime
 
 
-
 global data_cache
 data_cache = {"data": {}}
-global historical_data_cache
-historical_data_cache = {}
+global btc_historical_data_cache
+btc_historical_data_cache = []
+global eth_historical_data_cache
+eth_historical_data_cache = []
 
 
 def loadData():
     global data_cache
-    global historical_data_cache
+    global btc_historical_data_cache
+    global eth_historical_data_cache
+
     cryptocompare.cryptocompare._set_api_key_parameter(
         '4445849e8c74ebfe227262a54942daedfd50da463d3777b068c667e6d4495b2a')
-    historical_data_cache = cryptocompare.get_historical_price_day(
+    btc_historical_data_cache = cryptocompare.get_historical_price_day(
         'BTC', 'USD', limit=1000, exchange='CCCAGG')
+    eth_historical_data_cache=cryptocompare.get_historical_price_day(
+        'ETH', 'USD', limit=1000, exchange='CCCAGG')
+
     with open("datahistory.json", "w+") as datafile:
-        datafile.write(json.dumps(historical_data_cache))
+        datafile.write(json.dumps(btc_historical_data_cache))
 
     url = f'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
     key = "092f78e5-80ec-4b38-8d06-c6b8b9d9d852"
@@ -47,22 +53,28 @@ def loadData():
 
     except (ConnectionError, Timeout, TooManyRedirects) as e:
             data = json.loads(response.text)
-loadData()
 
+
+loadData()
 
 
 def cache_data():
     global data_cache
-    global historical_data_cache
+    global btc_historical_data_cache
+    global eth_historical_data_cache
 
     while True:
 
+        
         cryptocompare.cryptocompare._set_api_key_parameter(
-            '4445849e8c74ebfe227262a54942daedfd50da463d3777b068c667e6d4495b2a')
-        historical_data_cache = cryptocompare.get_historical_price_day(
-            'BTC', 'USD', limit=1000, exchange='CCCAGG')
+        '4445849e8c74ebfe227262a54942daedfd50da463d3777b068c667e6d4495b2a')
+        btc_historical_data_cache = cryptocompare.get_historical_price_day(
+        'BTC', 'USD', limit=1000, exchange='CCCAGG')
+        eth_historical_data_cache=cryptocompare.get_historical_price_day(
+        'ETH', 'USD', limit=1000, exchange='CCCAGG')
         with open("datahistory.json", "w+") as datafile:
-            datafile.write(json.dumps(historical_data_cache))
+            datafile.write(json.dumps(btc_historical_data_cache))
+            datafile.write(json.dumps(eth_historical_data_cache))
 
         url = f'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
         key = "092f78e5-80ec-4b38-8d06-c6b8b9d9d852"
@@ -92,17 +104,70 @@ x.start()
 sleep(1)
 
 
-
 def getCurrentPrices():
     global data_cache
-    ret = {"BTC": data_cache["data"]["BTC"]["quote"]["USD"]["price"], "ETH":data_cache["data"]["ETH"]["quote"]["USD"]["price"]}
+    ret = {"BTC": data_cache["data"]["BTC"]["quote"]["USD"]["price"],
+        "ETH": data_cache["data"]["ETH"]["quote"]["USD"]["price"]}
 
     return ret
-def getMonthlyHistorical():
+
+
+def getBTCDailyHistoricalWeek():
+    global btc_historical_data_cache
+    ret = {}
+    for i in range(len(btc_historical_data_cache)-1, len(btc_historical_data_cache)-8, -1):
+        ret.update({str(datetime.datetime.fromtimestamp(
+            btc_historical_data_cache[i]["time"])): str(btc_historical_data_cache[i]["high"])})
+
+    return ret
+
+
+def getBTCDailyHistoricalYears():
+    global btc_historical_data_cache
     ret={}
+    for i in range(len(btc_historical_data_cache)-1,len(btc_historical_data_cache)-(31*37),-31):
+        ret.update({""+str(datetime.datetime.fromtimestamp(btc_historical_data_cache[i]["time"])):str(btc_historical_data_cache[i]["high"])})
+
+    
+    return ret
+
+def getBTCDailyHistoricalTwelveMonth():
+    global btc_historical_data_cache
+    ret={}
+    for i in range(len(btc_historical_data_cache)-1,len(btc_historical_data_cache)-(31*13),-31):
+        ret.update({""+str(datetime.datetime.fromtimestamp(btc_historical_data_cache[i]["time"])):str(btc_historical_data_cache[i]["high"])})
+
+    
     return ret
 
 
+def getETHDailyHistoricalWeek():
+    global eth_historical_data_cache
+    ret = {}
+    for i in range(len(eth_historical_data_cache)-1, len(eth_historical_data_cache)-8, -1):
+        ret.update({str(datetime.datetime.fromtimestamp(
+            eth_historical_data_cache[i]["time"])): str(eth_historical_data_cache[i]["high"])})
+
+    return ret
+
+
+def getETHDailyHistoricalYears():
+    global eth_historical_data_cache
+    ret={}
+    for i in range(len(eth_historical_data_cache)-1,len(eth_historical_data_cache)-(31*37),-31):
+        ret.update({""+str(datetime.datetime.fromtimestamp(eth_historical_data_cache[i]["time"])):str(eth_historical_data_cache[i]["high"])})
+
+    
+    return ret
+
+def getETHDailyHistoricalTwelveMonth():
+    global eth_historical_data_cache
+    ret={}
+    for i in range(len(eth_historical_data_cache)-1,len(eth_historical_data_cache)-(31*13),-31):
+        ret.update({""+str(datetime.datetime.fromtimestamp(eth_historical_data_cache[i]["time"])):str(eth_historical_data_cache[i]["high"])})
+
+    
+    return ret
 
 un="dmz"
 queuename="dmz"
@@ -121,7 +186,19 @@ def on_request(ch, method, props, body):
     print("%s" % str(n))
     if(n["function"]=="getCurrentPrices"):
         response = getCurrentPrices()
-    else:
+    elif(n["function"]=="getBTCDailyHistoricalWeek"):
+        response = getBTCDailyHistoricalWeek()
+    elif(n["function"]=="getBTCDailyHistoricalYears"):
+        response = getBTCDailyHistoricalYears()
+    elif(n["function"]=="getBTCDailyHistoricalTwelveMonth"):
+        response = getBTCDailyHistoricalTwelveMonth()
+    elif(n["function"]=="getETHDailyHistoricalWeek"):
+        response = getETHDailyHistoricalWeek()
+    elif(n["function"]=="getETHDailyHistoricalYears"):
+        response = getETHDailyHistoricalYears()
+    elif(n["function"]=="getETHDailyHistoricalTwelveMonth"):
+        response = getETHDailyHistoricalTwelveMonth()
+    else:    
         response="not parsed"
     print(response)
 
@@ -129,7 +206,7 @@ def on_request(ch, method, props, body):
                      routing_key="*",
                      properties=pika.BasicProperties(correlation_id = \
                                                          props.correlation_id),
-                     body=str(response))
+                     body=json.dumps(response))
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 channel.basic_qos(prefetch_count=1)
