@@ -1,3 +1,5 @@
 *.config
 
 *.log
+data.json
+datahistory.json
