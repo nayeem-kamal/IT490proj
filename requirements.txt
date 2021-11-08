@@ -1,3 +1,4 @@
 pika
 cryptocompare
 mysql-connector
+django

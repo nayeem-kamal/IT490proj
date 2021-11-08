@@ -121,19 +121,33 @@ class DBTransactor:
         try:
             conn = self.get_connection()
             cursor = self.get_cursor(conn)
-            query = """"select name and password from user where username = %s and password = %s """
+            query = """"select email,password,firstname,lastname from user where email = %s and password = %s """
             params = (un, pwd)
             self.execute_sql_with_open_connection(cursor, query, params)
             columns = cursor.fetchone()
             self.close_cursor(cursor)
             self.close_connection(conn)
             if un == columns[0]:
-                print(columns)
-                return True
+                return columns
         except mysql.connector.Error as error:
             print("Failed to get from MySQL table {}".format(error))
             return False
-
+    
+    def get_accounts(self,un):
+        try:
+            conn = self.get_connection()
+            cursor = self.get_cursor(conn)
+            query = """"select * from Accounts where username = %s"""
+            params = (un)
+            self.execute_sql_with_open_connection(cursor, query, params)
+            columns = cursor.fetchone()
+            self.close_cursor(cursor)
+            self.close_connection(conn)
+            if un == columns[0]:
+                return json.loads({"accounts":columns})
+        except mysql.connector.Error as error:
+            print("Failed to get from MySQL table {}".format(error))
+            return json.loads({"accounts":"False"})
     #get trade history
     def tradeHistory(self):
         try:
