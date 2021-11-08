@@ -7,7 +7,7 @@ class RpcClient(object):
 
     def __init__(self,inqueue):
         un="apache"
-        innqueue=inqueue
+        self.innqueue=inqueue
         credentials = pika.PlainCredentials(un,un )
         parameters = pika.ConnectionParameters('192.168.194.195',
                                        5672,
@@ -20,7 +20,7 @@ class RpcClient(object):
         channel_open = self.channel.is_open
         print("channel is_closed ", channel_close)
         print("channel is_open ", channel_open)
-        result = self.channel.queue_declare(queue=innqueue, exclusive=False,durable=True)
+        result = self.channel.queue_declare(queue=self.innqueue, exclusive=False,durable=True)
         self.callback_queue = result.method.queue
 
         self.channel.basic_consume(
@@ -35,7 +35,7 @@ class RpcClient(object):
         self.response = None
         self.corr_id = str(uuid.uuid4())
         self.channel.basic_publish(
-            exchange='dmz',
+            exchange=self.innqueue,
             routing_key='*',
             properties=pika.BasicProperties(
                 reply_to=self.callback_queue,
@@ -48,8 +48,3 @@ class RpcClient(object):
         return self.response
 
 
-fibonacci_rpc = RpcClient("dmz")
-
-print(" [x] Requesting current prices")
-response = fibonacci_rpc.call(json.dumps({"function":"getCurrentPrices"}))
-print(" [.] Got %r" % response)
