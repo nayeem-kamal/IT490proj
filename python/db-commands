@@ -56,6 +56,7 @@ CREATE TABLE `transactions` (
  `destination` int NOT NULL,         -- ex. destination would be bitcoin or eth
  `totalCost` float NOT NULL,        -- ex. how much trade was completed for after getting finally sold
  `transactionType` varchar(255) DEFAULT NULL, --buy, sell, w specifics such as limit order added later
+ `recentTrades` varchar(255)  DEFAULT NULL --keep recent trade history
  `intitialCost` float NOT NULL,        -- ex. how much trade was worth intially -
  `created` datetime DEFAULT CURRENT_TIMESTAMP,
  PRIMARY KEY (`id`),
