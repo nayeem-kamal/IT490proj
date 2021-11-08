@@ -1,21 +1,5 @@
--- sql commands to build database 
-Create database kommando;
-Create user 'jal97' identified by 'jal97';
-Create user 'nhk6' identified by 'nhk6';
-Create user 'pdp72' identified by 'pdp72';
-Create user 'id55'identified by 'id55';
 
--- give access and perms to all users 
-grant all on kommando.* to 'jal97', 'pdp72', 'nhk6', 'id55';
-
--- gave access twice to make sure all users had access to db 
-grant all on kommando.* to 'jal97';
-grant all on kommando.* to 'nhk6';
-grant all on kommando.* to 'pdp72';
-grant all on kommando.* to 'id55';
-
--- tell which db to use
-use kommando
+use kommando;
 
 -- adding USER table
 Create table `users` (
@@ -28,7 +12,7 @@ Create table `users` (
     `Public` tinyint DEFAULT NULL, 
     `admin` tinyint DEFAULT '0',
     `deactivated` tinyint DEFAULT '0',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
     UNIQUE KEY `username` (`username`),
     UNIQUE KEY `email` (`email`) 
 );
@@ -36,7 +20,7 @@ Create table `users` (
 -- added Accounts table
 CREATE TABLE `Accounts` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `account_number` varchar(12) DEFAULT NULL,
+  `account_number` varchar(12) AUTO_INCREMENT,
   `username` int DEFAULT NULL,
   `balance` float DEFAULT '0',
   `account_type` varchar(255) DEFAULT 'Bitcoin',
@@ -52,14 +36,14 @@ CREATE TABLE `Accounts` (
 -- added Transactions table
 CREATE TABLE `transactions` (
  `id` int NOT NULL AUTO_INCREMENT,
- `source` int NOT NULL,              --ex. for buy source would be investing acc
+ `source` int NOT NULL,              -- ex. for buy source would be investing acc
  `destination` int NOT NULL,         -- ex. destination would be bitcoin or eth
  `totalCost` float NOT NULL,        -- ex. how much trade was completed for after getting finally sold
- `transactionType` varchar(255) DEFAULT NULL, --buy, sell, w specifics such as limit order added later
- `recentTrades` varchar(255)  DEFAULT NULL --keep recent trade history
+ `transactionType` varchar(255) DEFAULT NULL, -- buy, sell, w specifics such as limit order added later
+ `recentTrades` varchar(255)  DEFAULT NULL, -- keep recent trade history
  `intitialCost` float NOT NULL,        -- ex. how much trade was worth intially -
  `created` datetime DEFAULT CURRENT_TIMESTAMP,
  PRIMARY KEY (`id`),
  KEY `source` (`source`),
- KEY `destination` (`destination`),
+ KEY `destination` (`destination`)
 );

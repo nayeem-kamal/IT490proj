@@ -1,6 +1,8 @@
 import mysql.connector
 import json
 
+from mysql.connector.errors import Error
+
 
 class DBTransactor:
     def __init__(self) -> None:
@@ -41,15 +43,15 @@ class DBTransactor:
         cursor.execute(query, params)
     
     #insert into user table
-    def insert_user(self, conn, name):
-        mySql_insert_query = """"INSERT INTO users(name)
-                                    VALUES (%s) """
-        self.execute_sql(conn, mySql_insert_query, (name,))
+    def insert_user(self, conn, uname,password,first,last):
+        mySql_insert_query = """"INSERT INTO `kommando`.`users`(
+        username,email,password,firstName,lastName) VALUES (%s,%s,%s,%s,%s) """
+        self.execute_sql(conn, mySql_insert_query, (uname,uname,password,first,last))
 
     #create user
-    def create_user(self, name):
+    def create_user(self, uname,password,first,last):
         try:
-            self.insert_user(self.get_connection(), name)
+            self.insert_user(self.get_connection(), uname,password,first,last)
             return True
 
         except mysql.connector.Error as error:
@@ -72,15 +74,15 @@ class DBTransactor:
             print("Failed to insert into MySQL table {}".format(error))
             return False
     #insert data into account
-    def insert_account(self, conn, name):
-        mySql_insert_query = """INSERT INTO Accounts (name)
-                                    VALUES (%s) """
-        self.execute_sql(conn, mySql_insert_query, (name,))
+    def insert_account(self, conn, uname,balance,account_type):
+        mySql_insert_query = """INSERT INTO Accounts (username,balance,account_type)
+                                    VALUES (%s,%f,%s) """
+        self.execute_sql(conn, mySql_insert_query, (uname,balance,account_type))
 
     # create accounts
-    def create_account(self, name):
+    def create_account(self, uname,balance,account_type):
         try:
-            self.insert_account(self.get_connection(), name)
+            self.insert_account(self.get_connection(), uname,balance,account_type)
             return True
         except mysql.connector.Error as error:
             print("Failed to insert into MySQL table {}".format(error))
@@ -88,26 +90,31 @@ class DBTransactor:
 
     #register function
     def register(self, firstName, lastName, un, email, password):
-        conn = self.get_connection()
-        cursor = self.get_cursor(conn)
-        mySql_insert_query = """INSERT INTO users (firstName, lastName, un, email, password
-                                VALUES(%s, %s, %s, %s, %s)"""
-        self.execute_sql_with_open_connection(conn, mySql_insert_query, (firstName,), (lastName,), (un,), (email,) (password,) )
-    
+        try:
+            self.create_user(email,password,firstName,lastName)
+            self.create_account(email,10000,"USD")
+            self.create_account(email,0,"BTC")
+            self.create_account(email,0,"ETH")
+            return True
+        except Error as error:
+            print("{}".format(error))
+            return False
+
+
     # login function
     def login(self, un, pw):
         conn = self.get_connection()
         cursor = self.get_cursor(conn)
-        query = """SELECT * FROM user where username = un and password == pw"""
+        query = """SELECT * FROM user where username = un and password = pw"""
         params = (un, pw)
         self.execute_sql(cursor, query, params)
-        columns = cursor.fetchmany(2)
+        column = cursor.fetchone()
         self.close_cursor(cursor)
         self.close_connection(conn)
-        if un == username and pw == password:
-            return True
+        if un == column[2] and pw == column[3]:
+            return json.loads({"User":str(column)})
         else:
-            return False
+            return json.loads({"User":"False"})
 
     # see if user is already in db
     def get_User(self, un, pwd):
