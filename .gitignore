@@ -3,3 +3,4 @@
 *.log
 data.json
 datahistory.json
+./__pychache__/
