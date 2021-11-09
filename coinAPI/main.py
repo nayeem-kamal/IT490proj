@@ -201,6 +201,7 @@ def on_request(ch, method, props, body):
         response = getETHDailyHistoricalTwelveMonth()
     else:    
         response="not parsed"
+        log.log("dmz","Invalid Function Request {}".format(n))
 
     print(" %r" % response)
 

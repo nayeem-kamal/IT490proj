@@ -86,7 +86,7 @@ VALUES(
 
     # insert data into account
     def insert_account(self, conn, un, balance, account_type):
-        mySql_insert_query = """INSERT INTO Accounts (username,balance,account_type)
+        mySql_insert_query = """INSERT INTO Accounts (email,balance,account_type)
                                     VALUES (%s,%s,%s) """
         self.execute_sql(conn, mySql_insert_query,
                          (un, balance, account_type))
@@ -160,7 +160,7 @@ VALUES(
             self.close_cursor(cursor)
             self.close_connection(conn)
         
-            return json.dumps({"accounts": columns})
+            return json.dumps({"accounts": str(columns)})
         except mysql.connector.Error as error:
             print("Failed to get from MySQL table {}".format(error))
             return json.dumps({"accounts": "False"})
