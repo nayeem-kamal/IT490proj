@@ -7,16 +7,16 @@ class API:
         self.rpc = rpcClient.RpcClient("dmz")
 
     def getCurrentPrices(self):
-        return json.loads(self.rpc.call(json.dumps({"function":"getCurrentPrices"})))
+        return json.loads(self.rpc.call({"function":"getCurrentPrices"}))
     def getWeekBTC(self):
-        return json.loads(self.rpc.call(json.dumps({"function":"getBTCDailyHistoricalWeek"})))
+        return json.loads(self.rpc.call({"function":"getBTCDailyHistoricalWeek"}))
     def getWeekETH(self):
-        return json.loads(self.rpc.call(json.dumps({"function":"getETHDailyHistoricalWeek"})))
+        return json.loads(self.rpc.call({"function":"getETHDailyHistoricalWeek"}))
     def getYearBTC(self):
-        return json.loads(self.rpc.call(json.dumps({"function":"getBTCDailyHistoricalTwelveMonth"})))
+        return json.loads(self.rpc.call({"function":"getBTCDailyHistoricalTwelveMonth"}))
     def getYearETH(self):
-        return json.loads(self.rpc.call(json.dumps({"function":"getETHDailyHistoricalTwelveMonth"})))
+        return json.loads(self.rpc.call({"function":"getETHDailyHistoricalTwelveMonth"}))
     def getThreeYearsBTC(self):
-        return json.loads(self.rpc.call(json.dumps({"function":"getBTCDailyHistoricalYears"})))
+        return json.loads(self.rpc.call({"function":"getBTCDailyHistoricalYears"}))
     def getThreeYearsETH(self):
-        return json.loads(self.rpc.call(json.dumps({"function":"getETHDailyHistoricalYears"})))    
+        return json.loads(self.rpc.call({"function":"getETHDailyHistoricalYears"}))    
