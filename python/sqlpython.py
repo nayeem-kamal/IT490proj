@@ -71,7 +71,6 @@ class DBTransactor:
         try:
             self.insert_transaction(self.get_connection(), name)
             return True
-
         except mysql.connector.Error as error:
             print("Failed to insert into MySQL table {}".format(error))
             return False
@@ -80,7 +79,7 @@ class DBTransactor:
     def insert_account(self, conn, un, balance, account_type):
         mySql_insert_query = """INSERT INTO Accounts (username,balance,account_type)
                                     VALUES (%s,%s,%s) """
-        self.execute_sql(conn, mySql_insert_query, (uname,balance,account_type))
+        self.execute_sql(conn, mySql_insert_query, (un,balance,account_type))
 
     # create accounts
     def create_account(self, uname,balance,account_type):
@@ -158,8 +157,8 @@ class DBTransactor:
         try:
             conn = self.get_connection()
             cursor = self.get_cursor(conn)
-            query = """select * FROM transactions where source in (select id from"""
-
+            query = """select sourceAccount, destinationAccount, destinationName, sourceName FROM transactions WHERE 
+                     sourceAccount AND destinationAccount = %s"""
             params = ()
             self.execute_sql(cursor, query, params)
             columns = cursor.fetchall()
@@ -196,7 +195,6 @@ class DBTransactor:
             print("Failed to select from MySQL table {}".format(error))
             return False
     
-    #update balance where username = this and account type is this
     #update account 
     def update_account(self, un, account_type, balance):
         try:
@@ -215,5 +213,7 @@ class DBTransactor:
             print("Failed to select from MySQL table {}".format(error))
             return json.loads({"accounts:""False"})
 
+
 # db=DBTransactor()
 # db.get_User("jal97", "toor")
+#source name source acc destination name destination account
