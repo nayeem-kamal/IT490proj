@@ -51,14 +51,16 @@ CREATE TABLE `Accounts` (
 
 -- added Transactions table
 CREATE TABLE `transactions` (
- `id` int NOT NULL AUTO_INCREMENT,
- `source` int NOT NULL,              --ex. for buy source would be investing acc
- `destination` int NOT NULL,         -- ex. destination would be bitcoin or eth
- `totalCost` float NOT NULL,        -- ex. how much trade was completed for after getting finally sold
- `transactionType` varchar(255) DEFAULT NULL, --buy, sell, w specifics such as limit order added later
- `intitialCost` float NOT NULL,        -- ex. how much trade was worth intially -
- `created` datetime DEFAULT CURRENT_TIMESTAMP,
- PRIMARY KEY (`id`),
- KEY `source` (`source`),
- KEY `destination` (`destination`),
+  `id` int NOT NULL AUTO_INCREMENT,
+  `sourceAccount` int DEFAULT NULL,
+  `destinationAccount` int DEFAULT NULL,
+  `totalCost` float NOT NULL,
+  `transactionType` varchar(255) DEFAULT NULL,
+  `intitialCost` float NOT NULL,
+  `created` datetime DEFAULT CURRENT_TIMESTAMP,
+  `sourceName` varchar(255) DEFAULT NULL,
+  `destinationName` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `source` (`sourceAccount`),
+  KEY `destination` (`destinationAccount`)
 );
