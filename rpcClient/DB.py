@@ -9,24 +9,15 @@ class DB:
         self.rpc = rpcClient.RpcClient("mysql")
 
     def register(self,email,firstName,lastName,password):
-        key = hashlib.pbkdf2_hmac(
-            'sha256', # The hash digest algorithm for HMAC
-            password.encode('utf-8'), # Convert the password to bytes
-            "123", # Provide the salt
-            1000,
-            dklen=128 # It is recommended to use at least 100,000 iterations of SHA-256 
-        )
+        key = hashlib.md5(password.encode()).hexdigest()
         return self.rpc.call(json.dumps({"function":"register","firstName":str(firstName),"lastName":str(lastName)
                                                     ,"email":str(email) , "password":str(key)}))
     def login(self,email,password):
-        key = hashlib.pbkdf2_hmac(
-            'sha256', # The hash digest algorithm for HMAC
-            password.encode('utf-8'), # Convert the password to bytes
-            "123", # Provide the salt
-            1000,
-            dklen=128 # It is recommended to use at least 100,000 iterations of SHA-256 
-        )
+        key = hashlib.md5(password.encode()).hexdigest()
         return self.rpc.call(json.dumps({"function":"login","email":str(email) , "password":str(key)}))
+    def getAccounts(self,email):
+        return self.rpc.call(json.dumps({"function":"get_accounts","email":str(email)}))
+
     def tradeHistory(self,email):
         return self.rpc.call(json.dumps({"function":"get_accounts","email":str(email)}))
     def get_all_transactions(self,email):
