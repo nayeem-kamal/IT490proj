@@ -1,6 +1,6 @@
 import mysql.connector
 import json
-
+import log
 from mysql.connector.errors import Error
 
 
@@ -34,7 +34,7 @@ class DBTransactor:
     # Pass in a MySqlConnection (conn) and a query to be executed (query) and needed parameters(params)
     def execute_sql(self, conn, query, params):
         cursor = self.get_cursor(conn)
-        # print(query+"   "+str(params))
+        # log.log("mysql"query+"   "+str(params))
         cursor.execute(query, params)
         conn.commit()
         print(conn)
@@ -65,7 +65,7 @@ VALUES(
             return True
 
         except mysql.connector.Error as error:
-            print("Failed to insert into MYSQL table {}".format(error))
+            log.log("mysql""Failed to insert into MYSQL table {}".format(error))
             return False
 
     # insert transaction
@@ -81,7 +81,7 @@ VALUES(
             return True
 
         except mysql.connector.Error as error:
-            print("Failed to insert into MySQL table {}".format(error))
+            log.log("mysql""Failed to insert into MySQL table {}".format(error))
             return False
 
     # insert data into account
@@ -99,7 +99,7 @@ VALUES(
                                 uname, balance, account_type)
             return True
         except mysql.connector.Error as error:
-            print("Failed to insert into MySQL table {}".format(error))
+            log.log("mysql""Failed to insert into MySQL table {}".format(error))
             return False
 
     # register function
@@ -111,7 +111,7 @@ VALUES(
             self.create_account(email, 0, "ETH")
             return True
         except Error as error:
-            print("{}".format(error))
+            log.log("mysql""{}".format(error))
             return False
 
     # login function
@@ -127,9 +127,9 @@ VALUES(
         self.close_cursor(cursor)
         self.close_connection(conn)
         if un == column[0] and str(pw) == str(column[1]):
-            return json.loads({"User": str(column)})
+            return json.dumps({"User": column})
         else:
-            return json.loads({"User": "False"})
+            return json.dumps({"User": "False"})
 
     # see if user is already in db
     def get_User(self, un, pwd):

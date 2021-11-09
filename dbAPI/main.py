@@ -10,6 +10,7 @@ from time import time, sleep
 import cryptocompare
 import datetime
 from sqlpython import DBTransactor
+import log
 
 
 un="mysql"
@@ -34,7 +35,7 @@ def login(email,pw):
 def get_accounts(email):
     global db
     ret = db.get_accounts(email)
-    return ret;
+    return ret
 
 
 def on_request(ch, method, props, body):
@@ -63,5 +64,5 @@ def on_request(ch, method, props, body):
 
 channel.basic_consume(queue='mysql', on_message_callback=on_request)
 
-print(" [x] Awaiting RPC requests")
+log.log("mysql"," [x] Awaiting RPC requests")
 channel.start_consuming()
