@@ -15,25 +15,23 @@
   </head>
   <body>
     
-    <h1>Data Charts</h1>
     <div class="container-fluid">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container-fluid">
-              <a class="navbar-brand" href="#">Navbar</a>
-              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-              </button>
-              <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                <div class="navbar-nav">
-                  <a class="nav-link active" aria-current="page" href="index.html">Home</a>
-                  <a class="nav-link" href="#">Page 1</a>
-                  <a class="nav-link" href="#">Page 2</a>
-                  <a class="nav-link disabled">Page 3</a>
-                </div>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+          <div class="container-fluid">
+            <a class="navbar-brand" href="#">CryptoTrade/a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+              <div class="navbar-nav">
+                <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+                <a class="nav-link" href="accounts.html">Accounts</a>
+                <a class="nav-link" href="trade.html">Make Trades</a>
               </div>
             </div>
-          </nav>
-    </div>
+          </div>
+        </nav>
+  </div>
     <div class="container-fluid">
         <div class="row">
             <div class="col-3 sidebar">
@@ -79,7 +77,7 @@
 
 <script>
     document.addEventListener("DOMContentLoaded",function() {
-        var datField={
+        var monthData={
             labels: ["January", 
                 "February", "March", "April", "May", "June", 
                 "July","August","September","October","November","December"],
@@ -97,12 +95,34 @@
                 }
             ]
         };
+        var dailyData={
+            labels: ["12am", 
+                "1am", "2am", "3am", "4am", "5am", 
+                "6am","7am","8am","9am","10am","11am","12pm", 
+                "1pm", "2pm", "3pm", "4pm", "5pm", 
+                "6pm","7pm","8pm","9pm","10pm","11pm"],
+                datasets:[{
+                    label:"Bitcoin",
+                    backgroundColor:'rgb(255, 99, 132)',
+                    borderColor:'rgb(255, 99, 132)',
+                    data:[0, 10, 5, 2, 20, 30, 45, 40, 25, 37, 19, 5,
+                          0, 10, 5, 2, 20, 30, 45, 40, 25, 37, 19, 5],
+                },
+                        {
+                    label:"Ethereum",
+                    backgroundColor:'green',
+                    borderColor:'green',
+                    data:[45, 30, 20, 2, 5, 10, 0, 10, 20, 30, 40, 50, 
+                          45, 30, 20, 2, 5, 10, 0, 10, 20, 30, 40, 50],
+                }
+            ]
+        }
         var ctx = document.
 getElementById('workArea').getContext('2d');
         var chart = new Chart(ctx, {
             type: 'line',
             options: {},
-            data:datField
+            data:dailyData
         });
     })();
 </script>

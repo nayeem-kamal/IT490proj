@@ -1,5 +1,5 @@
 from API import API
 rpc = API()
 print(" [x] Requesting current prices")
-response = rpc.getWeekBTC()
+response = rpc.getCurrentPrices()
 print(" [.] Got %r" % response)

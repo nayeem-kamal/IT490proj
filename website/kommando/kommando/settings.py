@@ -54,7 +54,8 @@ ROOT_URLCONF = 'kommando.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR/'kommando/templates',
+                    '~/Desktop/IT490proj/website/kommando/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
