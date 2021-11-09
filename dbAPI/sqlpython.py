@@ -7,8 +7,12 @@ from mysql.connector.errors import Error
 class DBTransactor:
     def __init__(self) -> None:
         self.config = {}
-        with open("database.config", "r") as config_file:
-            self.config = json.load(config_file)
+        self.config = {
+    "hostname" : "192.168.194.195",
+    "database" : "kommando",
+    "user" : "nhk6",
+    "password" : "nhk6"
+    }
 
         if "hostname" not in self.config:
             exit()
