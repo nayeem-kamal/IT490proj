@@ -1,0 +1,1 @@
+/home/pdp72/Desktop/rabbitmqphp_example/testRabbitMQClient.php

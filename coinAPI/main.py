@@ -1,3 +1,4 @@
+import log
 import pika
 import logging
 import json
@@ -9,6 +10,15 @@ import os
 from time import time, sleep
 import cryptocompare
 import datetime
+
+un="dmz"
+queuename="dmz"
+credentials = pika.PlainCredentials(un,un )
+parameters = pika.ConnectionParameters('192.168.194.195',5672,'it490',credentials)
+connection = pika.BlockingConnection(parameters)
+channel = connection.channel()
+channel.queue_purge("dmz")
+#channel.queue_declare(queue='dmz',durable=True)
 
 
 global data_cache
@@ -98,11 +108,12 @@ def cache_data():
             # logger.log("dmz",json.dumps(data))
         sleep(60 - time() % 60)
 
-
-x = threading.Thread(target=cache_data)
-x.start()
-sleep(1)
-
+try:
+    x = threading.Thread(target=cache_data)
+    x.start()
+    sleep(1)
+except os.error as e:
+    log.log("dmz","{}".format(e))
 
 def getCurrentPrices():
     global data_cache
@@ -169,20 +180,10 @@ def getETHDailyHistoricalTwelveMonth():
     
     return ret
 
-un="dmz"
-queuename="dmz"
-credentials = pika.PlainCredentials(un,un )
-parameters = pika.ConnectionParameters('192.168.194.195',5672,'it490',credentials)
-connection = pika.BlockingConnection(parameters)
-
-
-channel = connection.channel()
-
-channel.queue_declare(queue=queuename,durable=True)
-
 def on_request(ch, method, props, body):
-    print(body)
+    # print(body)
     n = json.loads(body)
+   
     print("%s" % str(n))
     if(n["function"]=="getCurrentPrices"):
         response = getCurrentPrices()
@@ -200,23 +201,20 @@ def on_request(ch, method, props, body):
         response = getETHDailyHistoricalTwelveMonth()
     else:    
         response="not parsed"
-    print(response)
+        log.log("dmz","Invalid Function Request {}".format(n))
 
-    ch.basic_publish(exchange='dmz',
-                     routing_key="*",
+    print(" %r" % response)
+
+    ch.basic_publish(exchange='',
+                     routing_key=props.reply_to,
                      properties=pika.BasicProperties(correlation_id = \
                                                          props.correlation_id),
                      body=json.dumps(response))
-    ch.basic_ack(delivery_tag=method.delivery_tag)
+    #ch.basic_ack(delivery_tag=method.delivery_tag)
+try:
+    channel.basic_consume(queue='dmz', on_message_callback=on_request)
 
-channel.basic_qos(prefetch_count=1)
-channel.basic_consume(queue=queuename, on_message_callback=on_request)
-
-channel_close = channel.is_closed
-channel_open = channel.is_open
-print("channel is_closed ", channel_close)
-print("channel is_open ", channel_open)
-
-print(" [x] Awaiting RPC requests")
-channel.start_consuming()
-print("consuming")
+    log.log("dmz"," [x] Awaiting RPC requests")
+    channel.start_consuming()
+except pika.exceptions.AMQPError as e:
+    log.log("dmz","{}".format(e))

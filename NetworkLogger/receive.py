@@ -14,7 +14,7 @@ channel = connection.channel()
 
 channel.exchange_declare(exchange='NetworkLog', exchange_type='fanout')
 
-result = channel.queue_declare(queue='NetworkLog', exclusive=False)
+result = channel.queue_declare(queue='', exclusive=False)
 queue_name = result.method.queue
 
 channel.queue_bind(exchange='NetworkLog', queue=queue_name)

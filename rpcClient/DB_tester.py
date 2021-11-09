@@ -1,5 +1,5 @@
-from API import API
-rpc = API()
+from DB import DB
+rpc = DB()
 print(" [x] Requesting current prices")
-response = rpc.getCurrentPrices()
+response = rpc.getAccounts("nayeem")
 print(" [.] Got %r" % response)
