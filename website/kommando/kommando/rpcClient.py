@@ -53,7 +53,7 @@ import uuid
 import datetime
 from time import time,sleep 
 import json
-import log
+from . import log
 class RpcClient(object):
 
     def __init__(self,inqueue):
