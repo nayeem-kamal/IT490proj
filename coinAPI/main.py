@@ -201,7 +201,7 @@ def on_request(ch, method, props, body):
         response = getETHDailyHistoricalTwelveMonth()
     else:    
         response="not parsed"
-        log.log("dmz","Invalid Function Request {}".format(n))
+        log.log("dmz","Invalid Function Request")
 
     print(" %r" % response)
 
@@ -210,6 +210,7 @@ def on_request(ch, method, props, body):
                      properties=pika.BasicProperties(correlation_id = \
                                                          props.correlation_id),
                      body=json.dumps(response))
+    ch.queue_delete(queue=props.reply_to)
     #ch.basic_ack(delivery_tag=method.delivery_tag)
 try:
     channel.basic_consume(queue='dmz', on_message_callback=on_request)
