@@ -2,9 +2,8 @@ from django.http.response import HttpResponse
 from django.shortcuts import render
 from django.http import HttpResponse
 from .forms import ContactForm
-from .. import API
-import sys
-sys.path.append("..")
+from API import API
+
 def contact(request):
     if request.method == 'POST':
         form = ContactForm(request.POST)
@@ -23,4 +22,4 @@ def apiTest(request):
     response = rpc.getWeekBTC()
     print(" [.] Got %r" % response)
     form = ContactForm()
-    return render(request, 'form.html', {'form': form})
+    return render(request, 'apiform.html', {'form': form})
