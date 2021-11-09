@@ -33,8 +33,10 @@ class DBTransactor:
     # Pass in a MySqlConnection (conn) and a query to be executed (query) and needed parameters(params)
     def execute_sql(self, conn, query, params):
         cursor = self.get_cursor(conn)
+        print(query+"   "+str(params))
         cursor.execute(query, params)
         conn.commit()
+        print(conn)
         if conn.is_connected():
             self.close_cursor(cursor)
             self.close_connection(conn)
@@ -44,7 +46,7 @@ class DBTransactor:
     
     #insert into user table
     def insert_user(self, conn, uname,password,first,last):
-        mySql_insert_query = """"INSERT INTO `kommando`.`users`(
+        mySql_insert_query = """"INSERT INTO kommando.users(
         username,email,password,firstName,lastName) VALUES (%s,%s,%s,%s,%s) """
         self.execute_sql(conn, mySql_insert_query, (uname,uname,password,first,last))
 
@@ -76,7 +78,7 @@ class DBTransactor:
     #insert data into account
     def insert_account(self, conn, uname,balance,account_type):
         mySql_insert_query = """INSERT INTO Accounts (username,balance,account_type)
-                                    VALUES (%s,%f,%s) """
+                                    VALUES (%s,%s,%s) """
         self.execute_sql(conn, mySql_insert_query, (uname,balance,account_type))
 
     # create accounts
@@ -153,7 +155,7 @@ class DBTransactor:
         try:
             conn = self.get_connection()
             cursor = self.get_cursor(conn)
-            query = """select totalCost FROM transactions """
+            query = """select * FROM transactions where source in (select id from"""
             params = ()
             self.execute_sql(cursor, query, params)
             columns = cursor.fetchall()
@@ -190,5 +192,5 @@ class DBTransactor:
             print("Failed to select from MySQL table {}".format(error))
             return False
 
-db=DBTransactor()
-db.get_User("jal97", "toor")
+# db=DBTransactor()
+# db.get_User("jal97", "toor")
