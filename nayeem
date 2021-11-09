@@ -1,0 +1,3 @@
+#!/bin/bash
+python3 NetworkLogger/receive.py &
+python3 coinAPI/main.py
