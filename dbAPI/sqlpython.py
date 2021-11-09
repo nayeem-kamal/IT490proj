@@ -103,7 +103,7 @@ VALUES(
                                 uname, balance, account_type)
             return True
         except mysql.connector.Error as error:
-            log.log("mysql""Failed to insert into MySQL table {}".format(error))
+            log.log("mysql""Failed to insert into MySQL table {}".format("Failed"))
             return False
 
     # register function

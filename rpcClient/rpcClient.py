@@ -94,7 +94,7 @@ class RpcClient(object):
             body=str(n))
         while self.response is None:
             
-            self.connection.process_data_events()
+            self.connection.process_data_events(5)
         return self.response
 
 

@@ -53,6 +53,7 @@ import uuid
 import datetime
 from time import time,sleep 
 import json
+import log
 class RpcClient(object):
 
     def __init__(self,inqueue):
@@ -95,6 +96,8 @@ class RpcClient(object):
         while self.response is None:
             
             self.connection.process_data_events()
+            log.log("apache","failed")
+            self.response=json.dumps({"status":"Failed"})
         return self.response
 
 
