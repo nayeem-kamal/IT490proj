@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Crypto Stock Trading</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/font-awesome.css">
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body data-spy="scroll" data-target="#data-scroll">
+    <!-- Navbar -->
+    <div class="navbar navbar-custom sticky" role="navigation">
+        <div class="container">
+            <!-- Navbar-header -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <i class="ti-menu"></i>
+                </button>
+                <!-- LOGO -->
+                <a class="navbar-brand logo" href="index.html">
+                    <i class="fa fa-bitcoin"></i> Crypto Stock Trading
+                </a>
+            </div>
+            <!-- end navbar-header -->
+            <!-- menu -->
+            <div class="navbar-collapse collapse" id="data-scroll">
+                <ul class="nav navbar-nav navbar-left">
+                    <li>
+                        <a class="scroll-func" href="index.html">Home</a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="mx-2">
+                        <button class="btn btn-primary btn-block" onclick="window.location.href='signup.html'"><i
+                                class="glyphicon glyphicon-user"></i> Register</button>
+                    </li>
+                    <li class="mx-2">
+                        <button class="btn btn-secondary btn-block" onclick="window.location.href='login.html'"><i
+                                class="fa fa-key"></i> Login</button>
+                    </li>
+                </ul>
+            </div>
+            <!--/Menu -->
+        </div>
+        <!-- end container -->
+    </div>
+    <!-- Main -->
+    <section class="home bg-image home-small" id="home">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="home-wrapper home-intro row vertical-content">
+                        <div class="col-md-6 col-sm-8">
+                            <div class="tabbable-panel">
+                                <div class="tabbable-line">
+                                    <div class="tab-content tab-content-BuySell m-t-9">
+    
+                                        <div class="tab-pane active" id="tab_default_2">
+                                            <div class="panel panel-body">
+                                                <form class="intro-form" action="#" id="invite-2" method="POST">
+                                                    <h5><i class="fa fa-key"></i> Sign in<span>Have an account? Sign in
+                                                            & start trading</span></h5>
+                                                    <input name="fname" id="fname-2" class="fname"
+                                                        placeholder="Full Name" type="text" required="required">
+                                                    <input type="email" placeholder="Email Address" name="email"
+                                                        required="required">
+                                                    <button type="submit" class="btn btn-secondary btn-block">Sign
+                                                        In</button>
+    
+                                                    <p>By Clicking Get Trial you agree to our terms of conditions of
+                                                        this product</p>
+                                                </form>
+                                                <span id="result"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- END Main -->
+    <div class="footer-alt bg-dark">
+        <p class="copy-rights">2021 © Crypto/Stock Trading. All Rights Reserved</p>
+    </div>
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+
+    <!-- Sticky Header -->
+    <script src="js/jquery.sticky.js"></script>
+    <!-- Custom js -->
+    <script src="js/landing.js"></script>
+</body>
+</html>
