@@ -2,7 +2,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import render
 from django.http import HttpResponse
 from .forms import ContactForm
-from API import API
+from . import API
 
 def contact(request):
     if request.method == 'POST':
@@ -17,9 +17,9 @@ def contact(request):
     return render(request, 'form.html', {'form': form})
 
 def apiTest(request):
-    rpc = API()
+    rpc = API.API()
     print(" [x] Requesting current prices")
     response = rpc.getWeekBTC()
     print(" [.] Got %r" % response)
     form = ContactForm()
-    return render(request, 'apiform.html', {'form': form})
+    return render(request, 'apiForm.html', {'form': form})

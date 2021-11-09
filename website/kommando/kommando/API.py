@@ -1,4 +1,4 @@
-import rpcClient
+from . import rpcClient
 import json
 
 
