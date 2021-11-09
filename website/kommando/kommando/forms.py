@@ -1,8 +1,8 @@
 from django import forms
 
 class ContactForm(forms.Form):
-    name = forms.CharField()
+    firstName = forms.CharField(label='First Name')
+    lastName = forms.CharField(label='Last Name')
     email = forms.EmailField(label='E-Mail')
-    category = forms.ChoiceField(choices=[('question','Question'),('other','Other')])
-    subject = forms.CharField(required=False)
-    body = forms.CharField(widget=forms.Textarea)
+    password = forms.CharField(widget=forms.PasswordInput)
+
