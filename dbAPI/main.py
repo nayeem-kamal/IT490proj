@@ -9,7 +9,7 @@ import json
 import os
 from time import time, sleep
 
-from dbAPI.sqlpython import DBTransactor
+from sqlpython import DBTransactor
 un="mysql"
 queuename="mysql"
 credentials = pika.PlainCredentials(un,un )

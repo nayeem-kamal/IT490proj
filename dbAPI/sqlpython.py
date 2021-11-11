@@ -255,7 +255,7 @@ def record_transaction(self, recentTrades):
     try:
         conn = self.get_connection()
         cursor = self.get_cursor(conn)
-        query = """INSERT into transactions (recentTrades)""""
+        query = """INSERT into transactions (recentTrades)"""
         params = (recentTrades)
         self.execute_sql(cursor, query, params)
         columns = cursor.fetchone()
