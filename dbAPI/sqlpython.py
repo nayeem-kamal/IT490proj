@@ -221,7 +221,7 @@ VALUES(
             query = """"UPDATE balance where username = name AND account_type = cash"""
             params = (un, account_type, balance)
             self.execute_sql_with_open_connection(cursor, query, params)
-            clumns = cursor.fetchall()
+            columns = cursor.fetchall()
             self.close_cursor(cursor)
             self.close_connection(conn)
             return json.loads({"accounts": balance})
@@ -229,7 +229,45 @@ VALUES(
             self.close_cursor(cursor)
             self.close_connection(conn)
             print("Failed to select from MySQL table {}".format(error))
-            return json.loads({"accounts:""False"})
+            return json.loads({"accounts":"False"})
+
+
+# update accounts when trade is completed
+    def update_trade(self, account_type, balance):
+        try:
+            conn = self.get_connection()
+            cursor = self.get_cursor(conn)
+            query = """UPDATE balance and account_type FROM"""
+            params = (account_type, balance)
+            self.execute_sql_with_open_connection(cursor, query, params)
+            columns = cursor.fetchmany(2)
+            self.close_cursor(cursor)
+            self.close_connection(conn)
+            return json.loads({"accounts":balance})
+        except mysql.connector.Error as error:
+            self.close_cursor(cursor)
+            self.close_connection(conn)
+            print("Failed to select from MySQL table {}".format(error))
+            return json.loads({"accounts":"False"})
+
+#add transaction to table
+def record_transaction(self, recentTrades):
+    try:
+        conn = self.get_connection()
+        cursor = self.get_cursor(conn)
+        query = """INSERT into transactions (recentTrades)""""
+        params = (recentTrades)
+        self.execute_sql(cursor, query, params)
+        columns = cursor.fetchone()
+        self.close(cursor)
+        self.close_connection(conn)
+        return json.loads({"transactions":recentTrades})
+    except mysql.connector.Error as error:
+        self.close_cursor(cursor)
+        self.close_connection(conn)
+        print("Failed to select from MySQL table {}".format(error))
+        return json.loads({"accounts":"False"})
+
 
 # db=DBTransactor()
 # db.get_User("jal97", "toor")
