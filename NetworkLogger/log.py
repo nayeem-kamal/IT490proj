@@ -10,7 +10,7 @@ def log(un,message1):
     credentials = pika.PlainCredentials(un, un)
     parameters = pika.ConnectionParameters('192.168.194.195',
                                            5672,
-                                           'it490',
+                                           'midterm',
                                            credentials)
     connection = pika.BlockingConnection(parameters)
     if(connection.is_open):
@@ -20,7 +20,7 @@ def log(un,message1):
     try:
         
 
-        channel.exchange_declare(exchange='NetworkLog', exchange_type='fanout')
+        channel.exchange_declare(exchange='NetworkLog', exchange_type='fanout',durable=True)
 
         message = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"      "+un+': '+message1
         channel.basic_publish(exchange='NetworkLog',
@@ -34,3 +34,6 @@ def log(un,message1):
             connection.close()
         return False
 
+log('logreader','test')
+log('logreader','test')
+log('logreader','test')

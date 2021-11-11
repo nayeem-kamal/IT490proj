@@ -1,4 +1,4 @@
-import log
+#!/usr/bin/env python
 import pika
 import logging
 import json
@@ -14,11 +14,20 @@ import datetime
 un="dmz"
 queuename="dmz"
 credentials = pika.PlainCredentials(un,un )
-parameters = pika.ConnectionParameters('192.168.194.195',5672,'it490',credentials)
+parameters = pika.ConnectionParameters('192.168.194.195',5672,'midterm',credentials)
 connection = pika.BlockingConnection(parameters)
 channel = connection.channel()
-channel.queue_purge("dmz")
-#channel.queue_declare(queue='dmz',durable=True)
+channel.exchange_declare(exchange='dmz', exchange_type='direct',durable=True)
+
+channel.queue_declare(queue='dmz',durable=True)
+
+def fib(n):
+    if n == 0:
+        return 0
+    elif n == 1:
+        return 1
+    else:
+        return fib(n - 1) + fib(n - 2)
 
 
 global data_cache
@@ -34,8 +43,9 @@ def loadData():
     global btc_historical_data_cache
     global eth_historical_data_cache
 
-    cryptocompare.cryptocompare._set_api_key_parameter(
-        '4445849e8c74ebfe227262a54942daedfd50da463d3777b068c667e6d4495b2a')
+    cryptocompare.cryptocompare._set_api_key_parameter('b2e6d01a5d0c607ed2cb72d6e619734279aa87973d098da4c0029ba6c5f8c96a')
+        # 'f3bfa32806d8a4514f7264b0f1effe2bdd13067f8cafd597de0d6567cd4a2393')
+        # '4445849e8c74ebfe227262a54942daedfd50da463d3777b068c667e6d4495b2a')
     btc_historical_data_cache = cryptocompare.get_historical_price_day(
         'BTC', 'USD', limit=1000, exchange='CCCAGG')
     eth_historical_data_cache=cryptocompare.get_historical_price_day(
@@ -45,7 +55,8 @@ def loadData():
         datafile.write(json.dumps(btc_historical_data_cache))
 
     url = f'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
-    key = "092f78e5-80ec-4b38-8d06-c6b8b9d9d852"
+    key =  "26c42ee6-305a-4631-a7b2-5ebccf594257"
+    #"092f78e5-80ec-4b38-8d06-c6b8b9d9d852"
     headers = {
         'Accepts': 'application/json',
         'X-CMC_PRO_API_KEY': key,
@@ -66,7 +77,7 @@ def loadData():
 
 
 loadData()
-
+# print(data_cache)
 
 def cache_data():
     global data_cache
@@ -76,18 +87,19 @@ def cache_data():
     while True:
 
         
-        cryptocompare.cryptocompare._set_api_key_parameter(
-        '4445849e8c74ebfe227262a54942daedfd50da463d3777b068c667e6d4495b2a')
-        btc_historical_data_cache = cryptocompare.get_historical_price_day(
-        'BTC', 'USD', limit=1000, exchange='CCCAGG')
-        eth_historical_data_cache=cryptocompare.get_historical_price_day(
-        'ETH', 'USD', limit=1000, exchange='CCCAGG')
-        with open("datahistory.json", "w+") as datafile:
-            datafile.write(json.dumps(btc_historical_data_cache))
-            datafile.write(json.dumps(eth_historical_data_cache))
+        # cryptocompare.cryptocompare._set_api_key_parameter('f3bfa32806d8a4514f7264b0f1effe2bdd13067f8cafd597de0d6567cd4a2393')
+        # # '4445849e8c74ebfe227262a54942daedfd50da463d3777b068c667e6d4495b2a')
+        # btc_historical_data_cache = cryptocompare.get_historical_price_day(
+        # 'BTC', 'USD', limit=1000, exchange='CCCAGG')
+        # eth_historical_data_cache=cryptocompare.get_historical_price_day(
+        # 'ETH', 'USD', limit=1000, exchange='CCCAGG')
+        # with open("datahistory.json", "w+") as datafile:
+        #     datafile.write(json.dumps(btc_historical_data_cache))
+        #     datafile.write(json.dumps(eth_historical_data_cache))
 
         url = f'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
-        key = "092f78e5-80ec-4b38-8d06-c6b8b9d9d852"
+        key =  "26c42ee6-305a-4631-a7b2-5ebccf594257"
+    #"092f78e5-80ec-4b38-8d06-c6b8b9d9d852"
         headers = {
             'Accepts': 'application/json',
             'X-CMC_PRO_API_KEY': key,
@@ -113,7 +125,8 @@ try:
     x.start()
     sleep(1)
 except os.error as e:
-    log.log("dmz","{}".format(e))
+    print(False)
+    # log.log("dmz","{}".format(e))
 
 def getCurrentPrices():
     global data_cache
@@ -181,41 +194,35 @@ def getETHDailyHistoricalTwelveMonth():
     return ret
 
 def on_request(ch, method, props, body):
-    # print(body)
     n = json.loads(body)
-   
-    print("%s" % str(n))
-    if(n["function"]=="getCurrentPrices"):
+    print(str(n)+" "+props.reply_to)
+    if(n['function']=="getCurrentPrices"):
         response = getCurrentPrices()
-    elif(n["function"]=="getBTCDailyHistoricalWeek"):
+    elif(n['function']=="getBTCDailyHistoricalWeek"):
         response = getBTCDailyHistoricalWeek()
-    elif(n["function"]=="getBTCDailyHistoricalYears"):
+    elif(n['function']=="getBTCDailyHistoricalYears"):
         response = getBTCDailyHistoricalYears()
-    elif(n["function"]=="getBTCDailyHistoricalTwelveMonth"):
+    elif(n['function']=="getBTCDailyHistoricalTwelveMonth"):
         response = getBTCDailyHistoricalTwelveMonth()
-    elif(n["function"]=="getETHDailyHistoricalWeek"):
+    elif(n['function']=="getETHDailyHistoricalWeek"):
         response = getETHDailyHistoricalWeek()
-    elif(n["function"]=="getETHDailyHistoricalYears"):
+    elif(n['function']=="getETHDailyHistoricalYears"):
         response = getETHDailyHistoricalYears()
-    elif(n["function"]=="getETHDailyHistoricalTwelveMonth"):
+    elif(n['function']=="getETHDailyHistoricalTwelveMonth"):
         response = getETHDailyHistoricalTwelveMonth()
     else:    
         response="not parsed"
-        log.log("dmz","Invalid Function Request")
+        #log.log("dmz","Invalid Function Request ")
 
-    print(" %r" % response)
-
-    ch.basic_publish(exchange='',
+    ch.basic_publish(exchange='dmz',
                      routing_key=props.reply_to,
                      properties=pika.BasicProperties(correlation_id = \
                                                          props.correlation_id),
-                     body=json.dumps(response))
-    ch.queue_delete(queue=props.reply_to)
-    #ch.basic_ack(delivery_tag=method.delivery_tag)
-try:
-    channel.basic_consume(queue='dmz', on_message_callback=on_request)
+                     body=str(response))
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    log.log("dmz"," [x] Awaiting RPC requests")
-    channel.start_consuming()
-except pika.exceptions.AMQPError as e:
-    log.log("dmz","{}".format(e))
+channel.basic_qos(prefetch_count=1)
+channel.basic_consume(queue='dmz', on_message_callback=on_request)
+
+print(" [x] Awaiting RPC requests")
+channel.start_consuming()

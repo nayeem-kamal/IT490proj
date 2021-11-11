@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import pika
 import logging
 import json
@@ -7,20 +8,18 @@ from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import json
 import os
 from time import time, sleep
-import cryptocompare
-import datetime
-from sqlpython import DBTransactor
-import log
 
-
+from dbAPI.sqlpython import DBTransactor
 un="mysql"
 queuename="mysql"
 credentials = pika.PlainCredentials(un,un )
-parameters = pika.ConnectionParameters('192.168.194.195',5672,'it490',credentials)
+parameters = pika.ConnectionParameters('192.168.194.195',5672,'midterm',credentials)
 connection = pika.BlockingConnection(parameters)
 channel = connection.channel()
-channel.queue_purge("mysql")
-#channel.queue_declare(queue='mysql',durable=True)
+channel.exchange_declare(exchange='mysql', exchange_type='direct',durable=True)
+
+
+channel.queue_declare(queue='mysql',durable=True)
 global db
 db = DBTransactor()
 
@@ -41,28 +40,28 @@ def get_accounts(email):
 def on_request(ch, method, props, body):
     # print(body)
     n = json.loads(body)
-   
-    print("%s" % str(n))
-    if(n["function"]=="register"):
+    print(str(n)+" "+props.reply_to)
+
+    if(n['function']=="register"):
         response = register(n["firstName"],n["lastName"],n["email"],n["password"])
-    elif(n["function"]=="login"):
+    elif(n['function']=="login"):
         response = login(n["email"],str(n["password"]))
-    elif(n["function"]=="get_accounts"):
+    elif(n['function']=="get_accounts"):
         response = get_accounts(str(n["email"]))
     
     else:    
         response="not parsed"
 
     print(" %r" % response)
-
-    ch.basic_publish(exchange='',
+    ch.basic_publish(exchange='mysql',
                      routing_key=props.reply_to,
                      properties=pika.BasicProperties(correlation_id = \
                                                          props.correlation_id),
-                     body=json.dumps(response))
-    #ch.basic_ack(delivery_tag=method.delivery_tag)
+                     body=str(response))
+    ch.basic_ack(delivery_tag=method.delivery_tag)
 
+channel.basic_qos(prefetch_count=1)
 channel.basic_consume(queue='mysql', on_message_callback=on_request)
 
-log.log("mysql"," [x] Awaiting RPC requests")
+print(" [x] Awaiting RPC requests")
 channel.start_consuming()
