@@ -70,7 +70,7 @@ class RpcClient(object):
         channel_open = self.channel.is_open
         print("channel is_closed ", channel_close)
         print("channel is_open ", channel_open)
-        result = self.channel.queue_declare(queue=self.innqueue, exclusive=False,durable=True)
+        result = self.channel.queue_declare(queue=self.innqueue, exclusive=False,durable=False)
         self.callback_queue = result.method.queue
 
         self.channel.basic_consume(

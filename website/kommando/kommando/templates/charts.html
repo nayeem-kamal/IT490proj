@@ -48,9 +48,11 @@
                   </ul>
             </div>
             <div class="col-9 main-content">
-                <h1>Historical prices: {{response}}</h1>
+                <!--<h1>Historical prices: {{response}}</h1>
 
-                <h1>Current Prices: {{currentPrice}}</h1>
+                <h1>Current Prices: {{currentPrice}}</h1> -->
+                <h4>Keys = {{rKeys}}</h4>
+                <h4>rVals = [{{rVals}}]</h4>
               <div class='container'>
                 <div style=" top:0%; left: 
         0%; width:100%; height:100%;">
@@ -79,6 +81,8 @@
 
 <script>
     document.addEventListener("DOMContentLoaded",function() {
+        var datArray = '{{rVals}}'.replace(/,\s*$/, "").split(", "); 
+        var labelArray = '{{rKeys}}'.replace(/,\s*$/, "").split(", ");
         var monthData={
             labels: ["January", 
                 "February", "March", "April", "May", "June", 
@@ -93,24 +97,23 @@
                     label:"Ethereum",
                     backgroundColor:'green',
                     borderColor:'green',
-                    data:[45, 30, 20, 2, 5, 10, 0, 10, 20, 30, 40, 50],
+                    data:datArray,
                 }
             ]
         };
         var dailyData={
-            labels: '',
+            labels: labelArray,
                 datasets:[{
                     label:"Bitcoin",
                     backgroundColor:'rgb(255, 99, 132)',
                     borderColor:'rgb(255, 99, 132)',
-                    data:'',
+                    data:["0, 10, 5, 2, 20, 30, 45, 40, 25, 37, 19, 5"],
                 },
                         {
                     label:"Ethereum",
                     backgroundColor:'green',
                     borderColor:'green',
-                    data:[45, 30, 20, 2, 5, 10, 0, 10, 20, 30, 40, 50, 
-                          45, 30, 20, 2, 5, 10, 0, 10, 20, 30, 40, 50],
+                    data:datArray,
                 }
             ]
         }
@@ -119,7 +122,7 @@ getElementById('workArea').getContext('2d');
         var chart = new Chart(ctx, {
             type: 'line',
             options: {},
-            data:monthData
+            data:dailyData
         });
     })();
 </script>
