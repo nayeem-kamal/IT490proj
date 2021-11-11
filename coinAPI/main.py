@@ -21,13 +21,7 @@ channel.exchange_declare(exchange='dmz', exchange_type='direct',durable=True)
 
 channel.queue_declare(queue='dmz',durable=True)
 
-def fib(n):
-    if n == 0:
-        return 0
-    elif n == 1:
-        return 1
-    else:
-        return fib(n - 1) + fib(n - 2)
+
 
 
 global data_cache
@@ -43,8 +37,9 @@ def loadData():
     global btc_historical_data_cache
     global eth_historical_data_cache
 
-    cryptocompare.cryptocompare._set_api_key_parameter('b2e6d01a5d0c607ed2cb72d6e619734279aa87973d098da4c0029ba6c5f8c96a')
-        # 'f3bfa32806d8a4514f7264b0f1effe2bdd13067f8cafd597de0d6567cd4a2393')
+    cryptocompare.cryptocompare._set_api_key_parameter(
+        #'b2e6d01a5d0c607ed2cb72d6e619734279aa87973d098da4c0029ba6c5f8c96a')
+         'f3bfa32806d8a4514f7264b0f1effe2bdd13067f8cafd597de0d6567cd4a2393')
         # '4445849e8c74ebfe227262a54942daedfd50da463d3777b068c667e6d4495b2a')
     btc_historical_data_cache = cryptocompare.get_historical_price_day(
         'BTC', 'USD', limit=1000, exchange='CCCAGG')
@@ -55,7 +50,8 @@ def loadData():
         datafile.write(json.dumps(btc_historical_data_cache))
 
     url = f'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
-    key =  "26c42ee6-305a-4631-a7b2-5ebccf594257"
+    key = 'adabd8ae-74e9-474b-8841-3fe5639b87dc'
+    #"26c42ee6-305a-4631-a7b2-5ebccf594257"
     #"092f78e5-80ec-4b38-8d06-c6b8b9d9d852"
     headers = {
         'Accepts': 'application/json',
@@ -98,8 +94,10 @@ def cache_data():
         #     datafile.write(json.dumps(eth_historical_data_cache))
 
         url = f'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
-        key =  "26c42ee6-305a-4631-a7b2-5ebccf594257"
-    #"092f78e5-80ec-4b38-8d06-c6b8b9d9d852"
+        key = 'adabd8ae-74e9-474b-8841-3fe5639b87dc'
+
+        #"26c42ee6-305a-4631-a7b2-5ebccf594257"
+        #"092f78e5-80ec-4b38-8d06-c6b8b9d9d852"
         headers = {
             'Accepts': 'application/json',
             'X-CMC_PRO_API_KEY': key,

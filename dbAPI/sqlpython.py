@@ -69,7 +69,7 @@ VALUES(
             return True
 
         except mysql.connector.Error as error:
-            log.log("mysql""Failed to insert into MYSQL table {}".format(error))
+            log.log("mysql","Failed to insert into MYSQL table ")
             return False
 
     # insert transaction
@@ -85,7 +85,7 @@ VALUES(
             return True
 
         except mysql.connector.Error as error:
-            log.log("mysql""Failed to insert into MySQL table {}".format(error))
+            log.log("mysql","Failed to insert into MySQL table")
             return False
 
     # insert data into account
@@ -103,7 +103,7 @@ VALUES(
                                 uname, balance, account_type)
             return True
         except mysql.connector.Error as error:
-            log.log("mysql""Failed to insert into MySQL table {}".format("Failed"))
+            log.log("mysql","Failed to insert into MySQL table")
             return False
 
     # register function
@@ -115,7 +115,7 @@ VALUES(
             self.create_account(email, 0, "ETH")
             return True
         except Error as error:
-            log.log("mysql""{}".format(error))
+            log.log("mysql","failed query")
             return False
 
     # login function
@@ -149,7 +149,7 @@ VALUES(
             if un == columns[0]:
                 return columns
         except mysql.connector.Error as error:
-            print("Failed to get from MySQL table {}".format(error))
+            print("Failed to get from MySQL table")
             return False
 
     # get account
@@ -166,7 +166,7 @@ VALUES(
         
             return json.dumps({"accounts": str(columns)})
         except mysql.connector.Error as error:
-            print("Failed to get from MySQL table {}".format(error))
+            print("Failed to get from MySQL table")
             return json.dumps({"accounts": "False"})
 
     # get trade history
@@ -188,7 +188,7 @@ VALUES(
         except mysql.connector.Error as error:
             self.close_cursor(cursor)
             self.close_connection(conn)
-            print("Failed to select from MySQL table {}".format(error))
+            print("Failed to select from MySQL table")
             return False
 
     # get all transactions
@@ -209,7 +209,7 @@ VALUES(
         except mysql.connector.Error as error:
             self.close_cursor(cursor)
             self.close_connection(conn)
-            print("Failed to select from MySQL table {}".format(error))
+            print("Failed to select from MySQL table")
             return False
 
     # update balance where username = this and account type is this
@@ -228,7 +228,7 @@ VALUES(
         except mysql.connector.Error as error:
             self.close_cursor(cursor)
             self.close_connection(conn)
-            print("Failed to select from MySQL table {}".format(error))
+            print("Failed to select from MySQL table")
             return json.loads({"accounts":"False"})
 
 
@@ -247,7 +247,7 @@ VALUES(
         except mysql.connector.Error as error:
             self.close_cursor(cursor)
             self.close_connection(conn)
-            print("Failed to select from MySQL table {}".format(error))
+            print("Failed to select from MySQL table ")
             return json.loads({"accounts":"False"})
 
 #add transaction to table
@@ -265,7 +265,7 @@ def record_transaction(self, recentTrades):
     except mysql.connector.Error as error:
         self.close_cursor(cursor)
         self.close_connection(conn)
-        print("Failed to select from MySQL table {}".format(error))
+        print("Failed to select from MySQL table ")
         return json.loads({"accounts":"False"})
 
 
