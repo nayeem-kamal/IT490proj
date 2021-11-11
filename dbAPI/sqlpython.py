@@ -123,7 +123,7 @@ VALUES(
     def login(self, un, pw):
         conn = self.get_connection()
         cursor = self.get_cursor(conn)
-        query = """SELECT email,password FROM users where email = %s and password = %s"""
+        query = """SELECT email, password FROM users where email = %s and password = %s"""
         params = (un, pw)
         self.execute_sql_with_open_connection(cursor, query, params)
         column = cursor.fetchone()
@@ -218,8 +218,13 @@ VALUES(
         try:
             conn = self.get_connection()
             cursor = self.get_cursor(conn)
+<<<<<<< Updated upstream
             query = """"UPDATE `kommando`.`Accounts` SET `balance` = %f, account_type - %s"""
             params = (account_type, balance)
+=======
+            query = """"UPDATE balance where username = %s AND account_type = %s"""
+            params = (un, account_type, balance)
+>>>>>>> Stashed changes
             self.execute_sql_with_open_connection(cursor, query, params)
             columns = cursor.fetchall()
             self.close_cursor(cursor)
@@ -232,6 +237,7 @@ VALUES(
             return json.loads({"accounts":"False"})
 
 
+<<<<<<< Updated upstream
 # update accounts when trade is completed
     def update_trade(self, account_type, balance):
         try:
@@ -250,6 +256,8 @@ VALUES(
             print("Failed to select from MySQL table {}".format(error))
             return json.loads({"accounts":"False"})
 
+=======
+>>>>>>> Stashed changes
 #add transaction to table
 def record_transaction(self, recentTrades):
     try:
