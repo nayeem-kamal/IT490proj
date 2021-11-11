@@ -214,12 +214,12 @@ VALUES(
 
     # update balance where username = this and account type is this
     # update account
-    def update_account(self, un, account_type, balance):
+    def update_account(self, account_type, balance):
         try:
             conn = self.get_connection()
             cursor = self.get_cursor(conn)
-            query = """"UPDATE balance where username = name AND account_type = cash"""
-            params = (un, account_type, balance)
+            query = """"UPDATE `kommando`.`Accounts` SET `balance` = %f, account_type - %s"""
+            params = (account_type, balance)
             self.execute_sql_with_open_connection(cursor, query, params)
             columns = cursor.fetchall()
             self.close_cursor(cursor)
