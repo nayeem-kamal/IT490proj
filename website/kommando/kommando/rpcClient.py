@@ -53,7 +53,6 @@ import uuid
 import datetime
 from time import time,sleep 
 import json
-from . import log
 class RpcClient(object):
 
     def __init__(self,inqueue):
@@ -71,7 +70,7 @@ class RpcClient(object):
         channel_open = self.channel.is_open
         print("channel is_closed ", channel_close)
         print("channel is_open ", channel_open)
-        result = self.channel.queue_declare(queue=self.innqueue, exclusive=False,durable=True)
+        result = self.channel.queue_declare(queue=self.innqueue, exclusive=False,durable=False)
         self.callback_queue = result.method.queue
 
         self.channel.basic_consume(
@@ -86,7 +85,7 @@ class RpcClient(object):
         self.response = None
         self.corr_id = str(uuid.uuid4())
         self.channel.basic_publish(
-            exchange=self.innqueue,
+            exchange='',
             routing_key='*',
             properties=pika.BasicProperties(
                 reply_to=self.callback_queue,
@@ -95,9 +94,7 @@ class RpcClient(object):
             body=str(n))
         while self.response is None:
             
-            self.connection.process_data_events()
-            log.log("apache","failed")
-            self.response=json.dumps({"status":"Failed"})
+            self.connection.process_data_events(5)
         return self.response
 
 
