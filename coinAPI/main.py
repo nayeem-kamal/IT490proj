@@ -10,7 +10,7 @@ import os
 from time import time, sleep
 import cryptocompare
 import datetime
-
+import log
 un="dmz"
 queuename="dmz"
 credentials = pika.PlainCredentials(un,un )
@@ -77,6 +77,7 @@ def loadData():
 
 
 loadData()
+log.log("dmz","data loaded")
 # print(data_cache)
 
 def cache_data():
@@ -117,7 +118,7 @@ def cache_data():
 
         except (ConnectionError, Timeout, TooManyRedirects) as e:
             data = json.loads(response.text)
-            # logger.log("dmz",json.dumps(data))
+            log.log("dmz","error loading data")
         sleep(60 - time() % 60)
 
 try:
@@ -126,7 +127,7 @@ try:
     sleep(1)
 except os.error as e:
     print(False)
-    # log.log("dmz","{}".format(e))
+    log.log("dmz","thread error")
 
 def getCurrentPrices():
     global data_cache
@@ -212,7 +213,7 @@ def on_request(ch, method, props, body):
         response = getETHDailyHistoricalTwelveMonth()
     else:    
         response="not parsed"
-        #log.log("dmz","Invalid Function Request ")
+        log.log("dmz","Invalid Function Request ")
 
     ch.basic_publish(exchange='dmz',
                      routing_key=props.reply_to,
