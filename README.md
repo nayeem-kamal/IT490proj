@@ -1,3 +1,22 @@
+## Started Package Tool
+
+Started on a package tool that can be used to package & send files to deployment server. Current inputs look something like:
+
+To make a package:
+> <command><subcommand><pkgname><version><files>
+> pack make sample-package 1 api_connect.html api_accessor.py
+
+This makes and sends a tar.gz over scp with the following files:
+* pkg.yaml
+* api_connect.html
+* api_accessor.py
+
+Full paths for files derived from directory traversal. This is assuming from the start each corresponding node (Ex. Frontend) of a given cluster is identical, and any changes to QA and PROD cluster stems from DEV cluster. Sourcenode is derived from the nodes hostname.
+
+Current pkg.yaml:
+
+![currentyaml](img/current_yaml.png)
+
 ## Currently: pkg listners/senders and deployment server setup
 
 two versions of listener/sender
@@ -11,4 +30,3 @@ Scanning destination directories allows the listener to be removed from the key 
 Currently making some assumptions about the database schema and yaml format that will be inside package.tar.gz. Everything can be adapted according to how things go and whats needed. Just needed a starting point.
 
 ![sampletable](img/table_sample.png)
-![sampleyaml](img/sample_yaml.png)
