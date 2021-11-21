@@ -1,0 +1,7 @@
+pkgname: sample-pkg
+pkgversion: 1
+sourcenode: deployment-server
+pkgstatus: new
+install:
+- /home/dmz/Desktop/backup_repo/db_accessor.py
+- /home/dmz/Desktop/backup_repo/listenpkg.py

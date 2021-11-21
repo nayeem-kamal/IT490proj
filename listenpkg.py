@@ -13,6 +13,7 @@ import time
 import tarfile
 import yaml
 import db_accessor as db
+import traceback
 
 dir_to_scan = '/home/dmz/packages/'
 dir_to_store = '/home/dmz/packages/package_storage/'
@@ -22,11 +23,22 @@ new_pkg_type = '.tar.gz'
 rollback_type = '.yaml'
 
 
-def process_package(filename):
-    '''takes in str filename, mvs file to storage, calls db'''
+def send_revert(filename):
+    '''
+    probably socket connect which sends revert message
+    to a command line tool
+    '''
+    pass
 
-    # send information to database
-    db.store_fresh_package(filename)
+
+def process_package(filename):
+    '''takes in str filename, mvs file to storage, store pkg info db'''
+
+    # check for duplicate pkg, if false send to db
+    if db.does_pkg_exist(filename):
+        send_revert(filename)
+    else:
+        db.store_fresh_package(filename)
 
 
 def process_rollback(filename):

@@ -30,6 +30,7 @@ def unpack_yaml(source_path):
     with open(pkg_yaml_path, 'r') as file:
         pkg_yaml = yaml.safe_load(file)
 
+    # clean file from tmp
     os.remove(pkg_yaml_path)
 
     return pkg_yaml
@@ -52,6 +53,20 @@ def store_fresh_package(filename):
     shutil.move(dir_to_scan+filename, dir_to_store)
 
     print("store fresh pkg success")
+
+
+def does_pkg_exist(filename):
+    query = "select * from package where pkgpath=%s"
+    val = (filename,)
+    cursor = conn.cursor()
+    cursor.execute(query, val)
+    query_result = cursor.fetchall()
+
+    # will do for now, return true if package exists
+    if query_result:
+        return True
+    else:
+        return False
 
 
 def truncate_command(cmd_filename):
