@@ -4,6 +4,7 @@ Started on a package tool that can be used to package & send files to deployment
 
 To make a package:
 > *command-subcommand-pkgname-version-files*
+
 > pack make sample-package 1 api_connect.html api_accessor.py
 
 This makes and sends a tar.gz over scp with the following files:
