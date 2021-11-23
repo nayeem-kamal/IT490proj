@@ -1,0 +1,22 @@
+sudo apt install ufw
+MAKE SURE IT IS INACTIVE BEFORE RESET (sudo ufw status)
+sudo ufw reset
+sudo ufw deny incoming
+sudo ufw deny outgoing
+sudo ufw allow ssh
+sudo ufw allow Apache
+sudo ufw allow 22
+sudo ufw allow https
+sudo ufw allow 80 (needs to be changed to deny when SSL cert mad
+sudo ufw allow http (needs to be changed to deny when SSL cert made)
+sudo ufw allow 443
+sudo ufw allow 'Apache Full'
+sudo ufw allow 6000:6007/tcp
+sudo ufw allow 6000:6007/udp
+sudo ufw allow udp
+sudo ufw allow from 192.168.194.134
+sudo ufw allow from 192.168.194.69
+sudo ufw allow from 192.168.194.195
+sudo ufw allow from 192.168.196.69
+(restart zero tier if you need to see IP addresses)
+
