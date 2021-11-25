@@ -38,16 +38,34 @@ def get_file_paths(args, root):
 
     # directory traversal to establish full paths for files
     installpaths = {}
+    duplicate_check = []
     for dir_name, sub_dir_list, file_list in os.walk(root):
         if '.git' not in dir_name:
             if 'pycache' not in dir_name:
                 for fname in file_list:
                     if fname in args:
-                        installpaths[fname] = f'{dir_name}{fname}' # the / is in dir_name
+                        # dir slash issue correction due to os.walk subdirs
+                        if '/' not in dir_name[-1]:
+                            directory_name = dir_name+'/'
+                        else:
+                            directory_name = dir_name
+                        # check for duplicate filenames spawning multiple paths
+                        if fname not in installpaths:
+                            installpaths[fname] = directory_name+fname
+                        else:
+                            duplicate_check.append((fname, directory_name+fname))
 
     # check if all given filenames have found their paths
     if len(installpaths) != len(args):
         sys.exit("Not all files found, check names")
+
+    # duplicate checking (not finished)
+    if len(duplicate_check) > len(installpaths):
+        print('These paths were found with duplicate file names:')
+        for dup in duplicate_check:
+            print(dup)
+            print(installpaths[dup[1]])
+
 
     return installpaths
 
@@ -57,7 +75,7 @@ def make(pkgname, *args):
     place input format here
     '''
 
-    # ensure proper package name convention and parameter order
+    # ensure proper package name convention and parameter order (kindof)
     try:
         pkgversion = float(pkgname.split('-')[1])
     except Exception:
@@ -73,7 +91,7 @@ def make(pkgname, *args):
     # get the full paths for the given files
     installpaths = get_file_paths(args, config_yaml['root_path'])
 
-    # establish the yaml structure for the package 
+    # establish the yaml structure for the package
     yaml_dict = {'pkgname': pkgname, 'pkgversion': str(pkgversion),
             'sourcenode': socket.gethostname(), 'pkgstatus': 'new',
             'install': installpaths}
@@ -101,6 +119,7 @@ def make(pkgname, *args):
     # remove all files in tmp
     #subprocess.run('rm *', cwd=tmp_path, shell=True)
 
+
 def install(pkgname):
     pass
 
@@ -111,7 +130,7 @@ def setroot(root_path):
     Example:
         pack setroot /home/Desktop/repo_name
     '''
-    
+
     # validation attempt for ending slash,
     # comes into affect during directory traversal
     if '/' not in root_path[-1]:
