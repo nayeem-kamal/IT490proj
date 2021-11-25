@@ -14,13 +14,28 @@ import tarfile
 import yaml
 import db_accessor as db
 import traceback
+import datetime
 
-dir_to_scan = '/home/dmz/packages/'
+
+dir_to_scan = '/home/dmz/packages/incoming_packages/'
 dir_to_store = '/home/dmz/packages/package_storage/'
 tmp_path = dir_to_scan + 'tmp/'
 
 new_pkg_type = '.tar.gz'
 rollback_type = '.yaml'
+log_path = '/home/dmz/packages/pack.log'
+
+
+def emit_log(filename, new=False, rollback=False):
+    '''emits logs to log_path'''
+
+    time = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
+    if new:
+        with open(log_path, 'a') as file:
+            file.write(f'New Package Detected: {filename} - {time}')
+    if rollback:
+        with open(log_path, 'a') as file:
+            file.write(f'Rollback Detected: {filename} - {time}')
 
 
 def send_revert(filename):
@@ -51,10 +66,11 @@ while True:
     try:
         for filename in os.listdir(dir_to_scan):
             if filename.endswith(new_pkg_type):
-                print(f"New Package Detected: {filename}")
+                emit_log(filename, new=True)
                 process_package(filename)
             elif filename.endswith(rollback_type):
-                process_package(filename)
+                emit_log(filename, rollback=True)
+                process_rollback(filename)
             else:
                 print("No files..")
     except Exception as e:

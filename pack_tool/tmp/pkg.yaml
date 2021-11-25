@@ -1,5 +1,5 @@
-pkgname: samplepak-1.0
-pkgversion: '1.0'
+pkgname: samplepkg-2.3
+pkgversion: '2.3'
 sourcenode: deployment-server
 pkgstatus: new
 install:

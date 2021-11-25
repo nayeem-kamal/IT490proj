@@ -3,9 +3,11 @@
 Started on a package tool that can be used to package & send files to deployment server. Current inputs look something like:
 
 To make a package:
-> *command-subcommand-pkgname-version-files*
+> *command-subcommand-pkgname-files*
 
-> pack make sample-package 1 api_connect.html api_accessor.py
+> package naming convention: name-version
+
+> pack make samplepkg-1.2 api_connect.html api_accessor.py
 
 This makes and sends a tar.gz over scp with the following files:
 * pkg.yaml

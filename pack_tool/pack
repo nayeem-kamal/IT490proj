@@ -1,0 +1,140 @@
+#!/usr/bin/python3
+'''
+Pack tool for making and sending
+packages to deployment server
+
+first pass
+
+will probably become a class
+
+package naming convention: samplepak-1.0
+'''
+import fire
+import socket
+import os
+import yaml
+import sys
+import subprocess
+import tarfile
+import shutil
+
+
+deployment_ip = '192.168.100.4'
+deployment_server = f'dmz@{deployment_ip}:/home/dmz/packages/incoming_packages/'
+config_path = os.environ['HOME'] + '/.config/packtool/config.yaml'
+
+
+def get_config():
+    '''grabs configuration info'''
+
+    with open(config_path, 'r') as file:
+        config_yaml = yaml.safe_load(file)
+
+    return config_yaml
+
+
+def get_file_paths(args, root):
+    '''gets full paths for given files'''
+
+    # directory traversal to establish full paths for files
+    installpaths = {}
+    for dir_name, sub_dir_list, file_list in os.walk(root):
+        if '.git' not in dir_name:
+            if 'pycache' not in dir_name:
+                for fname in file_list:
+                    if fname in args:
+                        installpaths[fname] = f'{dir_name}{fname}' # the / is in dir_name
+
+    # check if all given filenames have found their paths
+    if len(installpaths) != len(args):
+        sys.exit("Not all files found, check names")
+
+    return installpaths
+
+
+def make(pkgname, *args):
+    '''
+    place input format here
+    '''
+
+    # ensure proper package name convention and parameter order
+    try:
+        pkgversion = float(pkgname.split('-')[1])
+    except Exception:
+        sys.exit('Error: Double check your order or package naming convention')
+
+    # get config yaml info and config path
+    config_yaml = get_config()
+
+    # user needs to set the root of their working project folder before proceeding
+    if 'root_path' not in config_yaml:
+        sys.exit('Run "pack setroot <string>" to set the root of your project file directory then rerun')
+
+    # get the full paths for the given files
+    installpaths = get_file_paths(args, config_yaml['root_path'])
+
+    # establish the yaml structure for the package 
+    yaml_dict = {'pkgname': pkgname, 'pkgversion': str(pkgversion),
+            'sourcenode': socket.gethostname(), 'pkgstatus': 'new',
+            'install': installpaths}
+
+    # write pkg.yaml to tmp for packaging
+    with open(config_yaml['tmp_path'] + 'pkg.yaml', 'w') as file:
+        yaml.dump(yaml_dict, file, sort_keys=False)
+
+    # copy pkg files to tmp for packaging
+    for fname in installpaths:
+        shutil.copyfile(installpaths[fname], config_yaml['tmp_path']+fname)
+
+    # tar.gz files in tmp, changing working directory to tmp
+    subprocess.run(f'tar -czf {pkgname}.tar.gz *', cwd=config_yaml['tmp_path'], shell=True)
+
+    # send pkg.tar.gz to deployment server
+    # subprocess.run(["scp", filepath, 'dmz@192.168.100.4:/home/dmz/packages'])
+
+    # create tar.gz
+    #with tarfile.open('./tmp/' + pkgname, 'w:gz') as tar:
+    #    tar.add('pkg.yaml')
+    #    for path in installpaths:
+    #        tar.add(path)
+
+    # remove all files in tmp
+    #subprocess.run('rm *', cwd=tmp_path, shell=True)
+
+def install(pkgname):
+    pass
+
+
+def setroot(root_path):
+    '''
+    Sets the root of the working project folder.
+    Example:
+        pack setroot /home/Desktop/repo_name
+    '''
+    
+    # validation attempt for ending slash,
+    # comes into affect during directory traversal
+    if '/' not in root_path[-1]:
+        root_path = root_path + '/'
+
+    # grab current config contents
+    config_yaml = get_config()
+
+    # puts root_path in if nonexistent, overwrites if existent
+    config_yaml['root_path'] = root_path
+
+    # dumps pack out to config file
+    with open(config_path, 'w') as file:
+        yaml.dump(config_yaml, file, sort_keys=False)
+
+
+def help():
+    pass
+
+
+if __name__ == '__main__':
+    fire.Fire({
+        'make': make,
+        'install': install,
+        'setroot': setroot,
+    })
