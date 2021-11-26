@@ -22,6 +22,7 @@ import shutil
 deployment_ip = '192.168.100.4'
 deployment_server = f'dmz@{deployment_ip}:/home/dmz/packages/incoming_packages/'
 config_path = os.environ['HOME'] + '/.config/packtool/config.yaml'
+pkg_extension = '.tar.gz'
 
 
 def get_config():
@@ -66,13 +67,12 @@ def get_file_paths(args, root):
             print(dup)
             print(installpaths[dup[1]])
 
-
     return installpaths
 
 
 def make(pkgname, *args):
     '''
-    place input format here
+    Creates and sends package. Format: 'pack make samplepak-1.2 file1 file2 file3'
     '''
 
     # ensure proper package name convention and parameter order (kindof)
@@ -86,7 +86,7 @@ def make(pkgname, *args):
 
     # user needs to set the root of their working project folder before proceeding
     if 'root_path' not in config_yaml:
-        sys.exit('Run "pack setroot <string>" to set the root of your project file directory then rerun')
+        sys.exit('Run "pack setroot <full path>" to set the root of your project file directory then rerun')
 
     # get the full paths for the given files
     installpaths = get_file_paths(args, config_yaml['root_path'])
@@ -105,10 +105,10 @@ def make(pkgname, *args):
         shutil.copyfile(installpaths[fname], config_yaml['tmp_path']+fname)
 
     # tar.gz files in tmp, changing working directory to tmp
-    subprocess.run(f'tar -czf {pkgname}.tar.gz *', cwd=config_yaml['tmp_path'], shell=True)
+    subprocess.run(f'tar -czf {pkgname}{pkg_extension} *', cwd=config_yaml['tmp_path'], shell=True)
 
     # send pkg.tar.gz to deployment server
-    # subprocess.run(["scp", filepath, 'dmz@192.168.100.4:/home/dmz/packages'])
+    subprocess.run(['scp', config_yaml['tmp_path']+pkgname+pkg_extension, deployment_server])
 
     # create tar.gz
     #with tarfile.open('./tmp/' + pkgname, 'w:gz') as tar:
