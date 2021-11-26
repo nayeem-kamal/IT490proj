@@ -17,13 +17,13 @@ import sys
 import subprocess
 import tarfile
 import shutil
+import datetime
 
-
-deployment_ip = '192.168.100.4'
-deployment_server = f'dmz@{deployment_ip}:/home/dmz/packages/incoming_packages/'
+deploy_host = 'deploy'
+deployment_server = f'{deploy_host}:/home/dmz/packages/incoming/'
 config_path = os.environ['HOME'] + '/.config/packtool/config.yaml'
 pkg_extension = '.tar.gz'
-
+show_last_logs = 2
 
 def get_config():
     '''grabs configuration info'''
@@ -32,6 +32,19 @@ def get_config():
         config_yaml = yaml.safe_load(file)
 
     return config_yaml
+
+
+def emit_log(yaml_dict):
+    '''writes to log file'''
+
+    #time = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
+    time = datetime.datetime.now().ctime()
+    config_yaml = get_config()
+
+    with open(config_yaml['log_path'], 'a') as file:
+        file.write('*-\n')
+        file.write(time + '\n')
+        yaml.dump(yaml_dict, file, sort_keys=False)
 
 
 def get_file_paths(args, root):
@@ -110,15 +123,11 @@ def make(pkgname, *args):
     # send pkg.tar.gz to deployment server
     subprocess.run(['scp', config_yaml['tmp_path']+pkgname+pkg_extension, deployment_server])
 
-    # create tar.gz
-    #with tarfile.open('./tmp/' + pkgname, 'w:gz') as tar:
-    #    tar.add('pkg.yaml')
-    #    for path in installpaths:
-    #        tar.add(path)
+    # remove all files in tmp, assuming ubuntu gio for now, not using rm * for safety
+    subprocess.run('gio trash *', cwd=config_yaml['tmp_path'], shell=True)
 
-    # remove all files in tmp
-    #subprocess.run('rm *', cwd=tmp_path, shell=True)
-
+    # add package details to log
+    emit_log(yaml_dict)
 
 def install(pkgname):
     pass
@@ -127,8 +136,8 @@ def install(pkgname):
 def setroot(root_path):
     '''
     Sets the root of the working project folder.
-    Example:
-        pack setroot /home/Desktop/repo_name
+    Format:
+        'pack setroot /home/Desktop/repo_name/'
     '''
 
     # validation attempt for ending slash,
@@ -147,6 +156,37 @@ def setroot(root_path):
         yaml.dump(config_yaml, file, sort_keys=False)
 
 
+def log():
+    '''Prints out info for last created packages. Format: 'pack log' '''
+
+    config = get_config()
+    if 'log_path' not in config:
+        sys.exit("Hm, not seeing a log path inside your config.")
+
+    with open(config['log_path'], 'r') as file:
+        lines = file.readlines()
+
+    # traverses list backwards to print logs last to first
+    # only shows specified count
+    # default show_last_logs = last 2 sent packages
+    idx = -1
+    count = 0
+    last_delim = -1
+    logcount = 0
+    while count < len(lines):
+        if '*-' in lines[idx]:
+            subcount = idx
+            while subcount <= last_delim:
+                print(lines[subcount], end='')
+                subcount = subcount + 1
+            logcount = logcount + 1
+            if logcount == show_last_logs:
+                break
+            last_delim = idx
+        idx = idx - 1
+        count = count + 1
+
+
 def help():
     pass
 
@@ -156,4 +196,5 @@ if __name__ == '__main__':
         'make': make,
         'install': install,
         'setroot': setroot,
+        'log': log,
     })

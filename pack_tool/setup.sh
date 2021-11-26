@@ -15,7 +15,7 @@ else
 		chmod +x pack
 		mkdir -p ~/.config/packtool/tmp
 		echo "tmp_path: $HOME/.config/packtool/tmp/" >> ~/.config/packtool/config.yaml
-		echo "log_path: $HOME/.config/packtool/history.log" >> ~/.config/packtool/logs.log
+		echo "log_path: $HOME/.config/packtool/logs.log" >> ~/.config/packtool/config.yaml
 		echo "config folder created: ~/.config/packtool/"
 fi
 
