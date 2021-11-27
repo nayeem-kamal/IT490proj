@@ -20,7 +20,7 @@ import shutil
 import datetime
 
 deploy_host = 'deploy'
-deployment_server = f'{deploy_host}:/home/dmz/packages/incoming/'
+deployment_server = f'{deploy_host}:/home/deploy/packages/incoming/'
 config_path = os.environ['HOME'] + '/.config/packtool/config.yaml'
 pkg_extension = '.tar.gz'
 show_last_logs = 2
