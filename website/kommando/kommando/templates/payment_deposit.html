@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Login Page</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">CryptoTrade</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
+        aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+          <a class="nav-link active" aria-current="page" href="login.html">Home</a>
+          <a class="nav-link" href="accounts.html">Accounts</a>
+          <a class="nav-link" href="trade.html">Make Trades</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-3 sidebar">
+        <ul class="list-group">
+          <li class="list-group-item list-group-item-dark" onclick="window.location.href='charts.html'">Charts</li>
+          <li class="list-group-item list-group-item-dark" onclick="window.location.href='payment_deposit.html'">Deposit</li>
+        </ul>
+      </div>
+      <div class="col-9 main-content">
+        <br><br>
+        <div class="card col-md-6 offset-md-3 col-sm-10 offset-sm-1">
+          <div class="card-body">
+            <h3 class="text-center text-secondary">Deposit Payment</h3>
+            <br>
+            <form method="Post">
+              <div class="form-row">
+                <label for="username">Card Owner</label>
+                <input type="text" name="name" placeholder="Card Owner Name" class="form-control" required>
+              </div>
+              <br>
+              <div class="form-row">
+                <label>Amount</label>
+                <input type="text" placeholder="Enter Amount to Deposit" name="amount" maxlength="3"
+                  onkeypress="return event.charCode >= 48 && event.charCode <= 57" class="form-control" required>
+              </div>
+              <br>
+              <div class="form-row">
+                <label for="cardno">Card number</label>
+                <input type="text" id="card_num" name="card_num" maxlength="16" placeholder="Valid card number"
+                class="form-control" onkeypress="return event.charCode >= 48 && event.charCode <= 57"  required>
+              </div>
+              <br>
+              <div class="form-row">
+                <label>CVV</label>
+                <input type="text" placeholder="like: 123" name="cvv" maxlength="3"
+                  onkeypress="return event.charCode >= 48 && event.charCode <= 57" class="form-control" required>
+              </div>
+              <br>
+              <div class="form-row">
+                <button type="submit" class="btn btn-secondary form-control" name="submit">Confirm</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--row-->
+  </div> <!-- container-fluid-->
+  <!-- Optional JavaScript; choose one of the two! -->
+  <!-- Option 1: Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Option 2: Separate Popper and Bootstrap JS -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script> -->
+</body>
+</html>
