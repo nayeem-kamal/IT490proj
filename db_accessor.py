@@ -37,13 +37,58 @@ def emit_log(message, send_log=False):
             file.write(f'\t{message} - {time}\n')
 
 
+def node_ready(node):
+    ''' check outstanding status of a node who just received a new package'''
+
+    query = "select * from package where pkgstatus='outstanding' and pkgsource=%s;"
+    val = (node,)
+    cursor = conn.cursor()
+    cursor.execute(query, val)
+    query_result = cursor.fetchall()
+
+    if not query_result:
+        return True
+    else:
+        return False
+
+
+def repack_tar_gz(pkg_yaml):
+    '''
+    rewrites new pkg.yaml with pkgid
+    repacks tar in tmp, mvs to package storage, deletes original package
+    '''
+    pkgname = pkg_yaml['pkgname']
+    pkg_extension = '.tar.gz'
+
+    with open(tmp_path + 'pkg.yaml', 'w') as file:
+        yaml.dump(yaml_dict, file, sort_keys=False)
+
+    # create new tar.gz from tmp files, change working dir to tmp then execute command
+    subprocess.run(f'tar -czf {pkgname}{pkg_extension} *', cwd=tmp_path, shell=True)
+
+    # move new tar.gz to storage
+    shutil.move(tmp_path+pkgname+pkg_extension, dir_to_store+pkg_yaml['sourcenode'])
+
+
+def unpack_tar_gz(source_path):
+    '''unpacks tar to tmp to pull and easily add pkgid to pkg.yaml'''
+
+    command = f"tar -xf {source_path} -C {tmp_path}"
+    os.system(command)
+    pkg_yaml_path = tmp_path + 'pkg.yaml'
+    with open(pkg_yaml_path, 'r') as file:
+        pkg_yaml = yaml.safe_load(file)
+
+    return pkg_yaml
+
+
 def unpack_yaml(source_path):
     '''takes in src path of tar.gz, writes pkg yaml to tmp, returns [yaml, path]'''
 
     # reading pkg.yaml inside package.tar.gz, stores to tmp dir (was easier this way)
     command = f"tar -xf {source_path} -C {tmp_path} pkg.yaml"
     os.system(command)
-    pkg_yaml_path = yaml.safe_load(tmp_path + 'pkg.yaml')
+    pkg_yaml_path = tmp_path + 'pkg.yaml'
     with open(pkg_yaml_path, 'r') as file:
         pkg_yaml = yaml.safe_load(file)
 
@@ -56,8 +101,14 @@ def unpack_yaml(source_path):
 def store_fresh_package(filename):
     '''stores new package in db'''
 
+    approved_sourcenodes = ['frontend', 'backend', 'dmz']
+
     # grab yaml information
-    pkg_yaml = unpack_yaml(dir_to_scan + filename)
+    pkg_yaml = unpack_tar_gz(dir_to_scan + filename)
+
+    # checks on hostname of package source, returns if not recognized
+    if pkg_yaml['sourcenode'] not in approved_sourcenodes:
+        return {'node': pkg_yaml['sourcenode'], 'ready': False}
 
     # storing package information to database using some supplied yaml information
     query = "insert into package (pkgname, pkgversion, pkgpath, pkgsource, pkgstatus) values (%s, %s, %s, %s, %s)"
@@ -66,10 +117,27 @@ def store_fresh_package(filename):
     cursor.execute(query, val)
     conn.commit()
 
-    # mv file from incoming dir to package storage
-    shutil.move(dir_to_scan+filename, dir_to_store)
+    query = 'select pkgid from package order by pkgid desc limit 1;'
+    cursor.execute(query)
+    pkgid = cursor.fetchall()[0][0]
 
-    emit_log("store pkg successful")
+    # add pkgid to pkg yaml, then repack and delete tmp files
+    pkg_yaml['pkgid'] = pkgid
+    repack_tar_gz(pkg_yaml)
+
+    # mv file new tar.gz from tmp to package storage
+    #shutil.move(dir_to_scan+filename, dir_to_store+pkg_yaml['sourcenode'])
+
+    # delete original tar.gz from incoming
+    os.remove(dir_to_scan+filename)
+
+    emit_log("New package successfully stored")
+
+    # if node has no outstanding packages waiting for a pass, node ready for next pkg
+    if node_ready(pkg_yaml['sourcenode']):
+        return {'node': pkg_yaml['sourcenode'], 'ready': True}
+    else:
+        return {'node': pkg_yaml['sourcenode'], 'ready': False}
 
 
 def does_pkg_exist(filename):
@@ -86,10 +154,25 @@ def does_pkg_exist(filename):
         return False
 
 
+def set_passed_package(filename):
+    '''
+    change status of package in database
+    '''
+    pkg_yaml = unpack_yaml(dir_to_scan + filename)
+
+    query = "update package set pkgstatus='passed' where pkgid=%s"
+    val = (pkg_yaml['pkgid'],)
+    cursor = conn.cursor()
+    cursor.execute(query, val)
+    conn.commit()
+
+
 def check_status():
     '''
     checks for new package to send to given node only if that node
     has no current outstanding packages waiting for a pass
+
+    outdated, new paradigm implemeted, this is currently for reference
     '''
 
     nodes = {'frontend': True, 'backend': True, 'dmz': True}

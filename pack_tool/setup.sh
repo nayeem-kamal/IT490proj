@@ -10,10 +10,11 @@ if [[ -f $FILE ]];then
 else
 		pip3 install fire
 		echo 'export PATH="'$PWD':$PATH"' >> ~/.bashrc
-		echo "pack added to PATH."
+		echo "pack added to PATH in bashrc."
 		source ~/.bashrc
 		chmod +x pack
 		mkdir -p ~/.config/packtool/tmp
+		touch $HOME/.config/packtool/logs.log
 		echo "tmp_path: $HOME/.config/packtool/tmp/" >> ~/.config/packtool/config.yaml
 		echo "log_path: $HOME/.config/packtool/logs.log" >> ~/.config/packtool/config.yaml
 		echo "config folder created: ~/.config/packtool/"

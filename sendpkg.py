@@ -14,14 +14,27 @@ def emit_log(message):
         file.write(f'{message} - {time}\n')
 
 
-while True:
-    try:
-        nodes = db.check_status()
-        for key in nodes:
-            if nodes[key]:
-                db.send_package(key, nodes[key])
+def send_next_qa(node):
+    pass
+    '''
+    hm.. grab path info for next package for node - dbacccesor
+    then grab tar.gz from filesystem and scp to QA node - here
 
-    except Exception as e:
-        print(e)
+    '''
+    db.emit_log(f'Sending QA {node} next package.')
 
-    time.sleep(5)
+def send_next_prod(node):
+
+    db.emit_log('Sending PROD {node} next package')
+
+#while True:
+#    try:
+#        nodes = db.check_status()
+#        for key in nodes:
+#            if nodes[key]:
+#                db.send_package(key, nodes[key])
+#
+#    except Exception as e:
+#        print(e)
+#
+#    time.sleep(5)

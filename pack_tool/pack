@@ -105,7 +105,7 @@ def make(pkgname, *args):
     installpaths = get_file_paths(args, config_yaml['root_path'])
 
     # establish the yaml structure for the package
-    yaml_dict = {'pkgname': pkgname, 'pkgversion': str(pkgversion),
+    yaml_dict = {'pkgid': '', 'pkgname': pkgname, 'pkgversion': str(pkgversion),
             'sourcenode': socket.gethostname(), 'pkgstatus': 'new',
             'install': installpaths}
 
