@@ -65,22 +65,29 @@ def new_package(filename):
 
     emit_log(filename, new=True)
 
-    node_ready = db.store_fresh_package(filename)
+    if db.does_pkg_exist(filename):
+        db.emit_log('Duplicate name detected, removing..')
+        os.remove(dir_to_scan+filename)
+    else:
+        node_ready = db.store_fresh_package(filename)
 
-    if node_ready['ready']:
-        db.emit_log(f"{node_ready['node']} is ready, now sending..")
-        send.send_next_qa(node_ready['node'])
+        if node_ready['ready']:
+            db.emit_log(f"{node_ready['node']} is ready, now sending..")
+            send.send_next_qa(node_ready['node'])
 
 
 def process_rollback(filename):
     pass
 
+
 def passed_package(filename):
     '''sets the given package to passed, then sends package to prod'''
     db.set_passed_package(filename)
 
+
 def failed_package(filename):
     pass
+
 
 # Main Entry #
 # process package that is either new, passed or failed

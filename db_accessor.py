@@ -8,6 +8,8 @@ import os
 import yaml
 import shutil
 import datetime
+import subprocess
+import glob
 
 dir_to_scan = '/home/deploy/packages/incoming/'
 dir_to_store = '/home/deploy/packages/package_storage/'
@@ -61,7 +63,7 @@ def repack_tar_gz(pkg_yaml):
     pkg_extension = '.tar.gz'
 
     with open(tmp_path + 'pkg.yaml', 'w') as file:
-        yaml.dump(yaml_dict, file, sort_keys=False)
+        yaml.dump(pkg_yaml, file, sort_keys=False)
 
     # create new tar.gz from tmp files, change working dir to tmp then execute command
     subprocess.run(f'tar -czf {pkgname}{pkg_extension} *', cwd=tmp_path, shell=True)
@@ -73,11 +75,18 @@ def repack_tar_gz(pkg_yaml):
 def unpack_tar_gz(source_path):
     '''unpacks tar to tmp to pull and easily add pkgid to pkg.yaml'''
 
+    # if anything in tmp, delete it
+    #command = f'gio trash {tmp_path}*'
+    #os.system(command)
+
+    # unpack tar.gx to tmp
     command = f"tar -xf {source_path} -C {tmp_path}"
     os.system(command)
     pkg_yaml_path = tmp_path + 'pkg.yaml'
     with open(pkg_yaml_path, 'r') as file:
         pkg_yaml = yaml.safe_load(file)
+
+    emit_log('Unpack tar.gz and yaml grab successful')
 
     return pkg_yaml
 
@@ -131,6 +140,11 @@ def store_fresh_package(filename):
     # delete original tar.gz from incoming
     os.remove(dir_to_scan+filename)
 
+    # remove leftover files in tmp
+    tmp_file_list = glob.glob(tmp_path+"*")
+    for file in tmp_file_list:
+        os.remove(file)
+
     emit_log("New package successfully stored")
 
     # if node has no outstanding packages waiting for a pass, node ready for next pkg
@@ -141,8 +155,12 @@ def store_fresh_package(filename):
 
 
 def does_pkg_exist(filename):
-    query = "select * from package where pkgpath=%s"
-    val = (filename,)
+    '''checks to see if source submitted duplicate pkgname'''
+
+    pkg_yaml = unpack_yaml(dir_to_scan + filename)
+
+    query = "select * from package where pkgpath=%s and pkgsource=%s"
+    val = (filename, pkg_yaml['sourcenode'])
     cursor = conn.cursor()
     cursor.execute(query, val)
     query_result = cursor.fetchall()

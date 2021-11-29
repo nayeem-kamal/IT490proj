@@ -124,7 +124,10 @@ def make(pkgname, *args):
     subprocess.run(['scp', config_yaml['tmp_path']+pkgname+pkg_extension, deployment_server])
 
     # remove all files in tmp, assuming ubuntu gio for now, not using rm * for safety
-    subprocess.run('gio trash *', cwd=config_yaml['tmp_path'], shell=True)
+    #subprocess.run('gio trash *', cwd=config_yaml['tmp_path'], shell=True)
+    tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
+    for file in tmp_file_list:
+        os.remove(file)
 
     # add package details to log
     emit_log(yaml_dict)
