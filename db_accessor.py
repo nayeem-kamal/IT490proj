@@ -107,6 +107,12 @@ def unpack_yaml(source_path):
     return pkg_yaml
 
 
+def scrub_tmp():
+    tmp_file_list = glob.glob(tmp_path+"*")
+    for file in tmp_file_list:
+        os.remove(file)
+
+
 def store_fresh_package(filename):
     '''stores new package in db'''
 
@@ -117,6 +123,8 @@ def store_fresh_package(filename):
 
     # checks on hostname of package source, returns if not recognized
     if pkg_yaml['sourcenode'] not in approved_sourcenodes:
+        emit_log(f'Hostname {pkg_yaml["sourcenode"]} not approved, removing..')
+        scrub_tmp()
         return {'node': pkg_yaml['sourcenode'], 'ready': False}
 
     # storing package information to database using some supplied yaml information
@@ -165,6 +173,8 @@ def does_pkg_exist(filename):
     cursor.execute(query, val)
     query_result = cursor.fetchall()
 
+    print('does_pkg_exist:')
+    print(query_result)
     # will do for now, return true if package exists
     if query_result:
         return True
@@ -172,7 +182,7 @@ def does_pkg_exist(filename):
         return False
 
 
-def set_passed_package(filename):
+def set_package_passed(filename):
     '''
     change status of package in database
     '''
@@ -234,3 +244,37 @@ def send_package(node, pkgid_and_pkgpath):
     pkgpath = pkgid_and_pkgpath[1]
 
     emit_log(f'\tSending {node}: {pkgpath}, id:{pkgid}', send_log=True)
+
+
+def set_package_outstanding(node, pkgpath):
+    '''set given package to outstanding '''
+
+    emit_log(f'Setting {node} {pkgpath} to outstanding')
+    query = "update package set pkgstatus='outstanding' where pkgsource=%s and pkgpath=%s;"
+    val = (node,)
+    cursor = conn.cursor()
+    cursor.execute(query, val)
+    conn.commit()
+
+
+def send_next_qa_package(node):
+    '''grabs next new package for given QA node, then sends '''
+
+    host = node + '_qa'
+    destination = f'{host}:/home/deploy/packages/incoming/'
+
+    query = "select pkgpath from package where pkgsource=%s and pkgstatus='new' order by pkgid asc limit 1;"
+    val = (node,)
+    cursor = conn.cursor()
+    cursor.execute(query, val)
+    query_result = cursor.fetchall()
+
+    pkgpath = query_result[0][0]
+
+    full_pkg_path = dir_to_store + node + '/' + pkgpath
+
+    # send package to QA node
+    subprocess.run(['scp', full_pkg_path, destination])
+
+    # set sent package to 'outstanding'
+    set_package_outstanding(node, pkgpath)

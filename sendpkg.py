@@ -15,15 +15,15 @@ def emit_log(message):
 
 
 def send_next_qa(node):
-    pass
     '''
-    hm.. grab path info for next package for node - dbacccesor
-    then grab tar.gz from filesystem and scp to QA node - here
-
+    grabs path info of next package for node, then sends
     '''
     db.emit_log(f'Sending QA {node} next package.')
 
+    db.send_qa_package(node)
+
 def send_next_prod(node):
+    '''sends passed package to prod node'''
 
     db.emit_log('Sending PROD {node} next package')
 

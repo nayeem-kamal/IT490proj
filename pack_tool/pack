@@ -18,6 +18,7 @@ import subprocess
 import tarfile
 import shutil
 import datetime
+import glob
 
 deploy_host = 'deploy'
 deployment_server = f'{deploy_host}:/home/deploy/packages/incoming/'
