@@ -18,9 +18,8 @@ def send_next_qa(node):
     '''
     grabs path info of next package for node, then sends
     '''
-    db.emit_log(f'Sending QA {node} next package.')
 
-    db.send_qa_package(node)
+    db.send_next_qa_package(node)
 
 def send_next_prod(node):
     '''sends passed package to prod node'''

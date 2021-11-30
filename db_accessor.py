@@ -246,12 +246,12 @@ def send_package(node, pkgid_and_pkgpath):
     emit_log(f'\tSending {node}: {pkgpath}, id:{pkgid}', send_log=True)
 
 
-def set_package_outstanding(node, pkgpath):
+def set_package_outstanding(node, pkgname):
     '''set given package to outstanding '''
 
-    emit_log(f'Setting {node} {pkgpath} to outstanding')
+    emit_log(f'Setting {node} {pkgname} to outstanding')
     query = "update package set pkgstatus='outstanding' where pkgsource=%s and pkgpath=%s;"
-    val = (node,)
+    val = (node, pkgname)
     cursor = conn.cursor()
     cursor.execute(query, val)
     conn.commit()
@@ -261,7 +261,7 @@ def send_next_qa_package(node):
     '''grabs next new package for given QA node, then sends '''
 
     host = node + '_qa'
-    destination = f'{host}:/home/deploy/packages/incoming/'
+    destination = f'{host}:/home/it490/packages/'
 
     query = "select pkgpath from package where pkgsource=%s and pkgstatus='new' order by pkgid asc limit 1;"
     val = (node,)
@@ -269,12 +269,14 @@ def send_next_qa_package(node):
     cursor.execute(query, val)
     query_result = cursor.fetchall()
 
-    pkgpath = query_result[0][0]
+    pkgname = query_result[0][0]
 
-    full_pkg_path = dir_to_store + node + '/' + pkgpath
+    full_pkg_path = dir_to_store + node + '/' + pkgname
 
     # send package to QA node
     subprocess.run(['scp', full_pkg_path, destination])
+    
+    emit_log(f'Successfully sent QA {node} package.')
 
     # set sent package to 'outstanding'
-    set_package_outstanding(node, pkgpath)
+    set_package_outstanding(node, pkgname)
