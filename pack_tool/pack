@@ -20,7 +20,8 @@ deploy_host = 'deploy'
 deployment_server = f'{deploy_host}:/home/deploy/packages/incoming/'
 config_path = os.environ['HOME'] + '/.config/packtool/config.yaml'
 pkg_extension = '.tar.gz'
-show_last_logs = 2
+show_last_logs = 1
+
 
 def get_config():
     '''grabs configuration info'''
@@ -174,6 +175,45 @@ def unpack_tar_gz(pkg_path, tmp_path):
     return pkg_yaml
 
 
+def repack_tar_gz(pkg_yaml):
+    '''
+    rewrites pkg.yaml with updated pkgstatus
+    repacks tar in tmp, mvs to outstanding_packages, deletes original package
+    '''
+
+    config_yaml = get_config()
+    tmp_path = config_yaml['tmp_path']
+    outstanding_path = config_yaml['outstanding_path']
+
+    pkgname = pkg_yaml['pkgname']
+    pkg_extension = '.tar.gz'
+    pkg_yaml['pkgstatus'] = 'outstanding'
+
+    with open(tmp_path + 'pkg.yaml', 'w') as file:
+        yaml.dump(pkg_yaml, file, sort_keys=False)
+
+    # create new tar.gz from tmp files, change working dir to tmp then execute command
+    subprocess.run(f'tar -czf {pkgname}{pkg_extension} *', cwd=tmp_path, shell=True)
+
+    # move new tar.gz to storage
+    shutil.move(tmp_path+pkgname+pkg_extension, outstanding_path)
+
+
+def pack_backup(pkg_yaml, bak_tmp):
+    '''
+    tar.gz the current backup file from the last installation
+    stored in tmp until backup dir is scrubbed
+    '''
+    pkg_ext = '.tar.gz'
+    pkgname = f'backup_to_{pkg_yaml["pkgname"]}'
+    config_yaml = get_config()
+    
+    # tar.gz the files in bak_tmp
+    subprocess.run(f'tar -czf {pkgname}{pkg_ext} *', cwd=bak_tmp, shell=True)
+    
+    #mv the tar.gz to backups
+    shutil.move(bak_tmp+pkgname+pkg_ext, config_yaml['backup_path'])
+
 def install(pkgname):
     '''
     Installs next package.
@@ -192,28 +232,42 @@ def install(pkgname):
     if not file:
         print('No packages to install.')
         return
+    elif pkgname not in file[0]:
+        print('Check package name.')
+        return
     else:
         pkg_yaml = unpack_tar_gz(config_yaml['new_pkg_path']+file[0], config_yaml['tmp_path'])
 
-    # grab install paths
+    # grab install paths from new pkg yaml
     path_dict = pkg_yaml['install']
 
-    # TO DO...
-    # make a pkg.yaml that outlines rollback
-    # keeping track of files that were overwritten
-    # but also keeping track of newly created files that should be
-    # removed on a rollback.. so
-    # if file exists, backup, if not, take note in yaml that it should be removed if rolledback
-    # rollback yaml slightly different structure
+    # to store package/state reconstruction information 
+    updated_files = {}
+    new_files = {}
+    new_dirs_and_files = {}
+    # if existing, copy file to backup directory, take note in yaml
+    # if not existing but parent directories exist, take note in yaml
+    # if not existing and parent directories not existing, take note in yaml
+    
+    # dynamically make backup tmp while creating backup package
+    base_path = config_path[:config_path.index('config.yaml')]
+    bak_tmp = base_path+'bak_tmp/'
+    os.mkdir(bak_tmp)
 
-    # once backup files and yaml are in backup, tar.gz them, then delete loose files
-    #
-
-
-    # if existing, copy file to backup directory
     for key in path_dict:
         if os.path.isfile(path_dict[key]):
-            shutil.copy(path_dict[key], config_yaml['backup_path'])
+            shutil.copy(path_dict[key], bak_tmp)
+            updated_files[key] = path_dict[key]
+        elif os.path.isdir(path_dict[key][:path_dict[key].index(key)]):
+            new_files[key] = path_dict[key]
+        else:
+            new_dirs_and_files[key] = path_dict[key]
+
+    rollback_dict = {
+            'updated_files': updated_files,
+            'new_files': new_files,
+            'new_dirs_and_files': new_dirs_and_files
+    }
 
     # create paths in the case that new folders were created
     for key in path_dict:
@@ -227,10 +281,36 @@ def install(pkgname):
     for key in path_dict:
         shutil.copy(config_yaml['tmp_path']+key, path_dict[key])
 
+    # removes all loose files in tmp dir (from the installed pkg)
+    tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
+    for file in tmp_file_list:
+        os.remove(file)
+
+    # dump rollback yaml to file in bak_tmp
+    with open(bak_tmp+'rollback.yaml', 'w') as file:
+        yaml.dump(rollback_dict, file, sort_keys=False)
+
+    # repacks installed pkg, moves to outstanding dir
+    repack_tar_gz(pkg_yaml)
+
+    # packs up backup files and rollback.yaml in bak_tmp
+    # mvs the tar.gz to backups
+    pack_backup(pkg_yaml, bak_tmp)
+
+    # removes all loose files in bak_tmp
+    bak_tmp_file_list = glob.glob(bak_tmp+"*")
+    for file in bak_tmp_file_list:
+        os.remove(file)
+    
+    # removes the bak_tmp directory
+    os.rmdir(bak_tmp)
+
+    pkg_yaml['details'] = rollback_dict
     emit_log(pkg_yaml, install=True)
 
-    # mv package from new packages after install
-    #
+    print('Package installed successfully. Check log for details.')
+
+
 def packages():
     '''
     Lists next package ready to be installed.
@@ -249,14 +329,19 @@ def packages():
 
     t = os.path.getmtime(config_yaml['new_pkg_path']+file[0])
     date = datetime.datetime.fromtimestamp(t).ctime()
-    
+
     print('*********************')
     print('1 Package to install:')
     print('*********************')
     print(f'***Filename: {file[0]}***')
     print(f'***Uploaded: {date}***')
-    for key, value in pkg_yaml.items():
-        print(f'\t{key}: {value}')
+    for key in pkg_yaml:
+        if isinstance(pkg_yaml[key], dict):
+            print(f'\t{key}:')
+            for key2, value in pkg_yaml[key].items():
+                print(f'\t  {key2}: {value}')
+        else:
+            print(f'\t{key}: {pkg_yaml[key]}')
 
 
 def setroot(root_path):
