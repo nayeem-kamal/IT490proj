@@ -15,7 +15,7 @@ dir_to_scan = '/home/deploy/packages/incoming/'
 dir_to_store = '/home/deploy/packages/package_storage/'
 tmp_path = '/home/deploy/packages/tmp/'
 log_path = '/home/deploy/packages/pack.log'
-log_path2 = '/home/deploy/packages/send.log'
+hosts_config = '/home/deploy/packages/hosts.yaml'
 
 conn = mysql.connector.connect(
     host='localhost',
@@ -173,8 +173,6 @@ def does_pkg_exist(filename):
     cursor.execute(query, val)
     query_result = cursor.fetchall()
 
-    print('does_pkg_exist:')
-    print(query_result)
     # will do for now, return true if package exists
     if query_result:
         return True
@@ -246,6 +244,15 @@ def send_package(node, pkgid_and_pkgpath):
     emit_log(f'\tSending {node}: {pkgpath}, id:{pkgid}', send_log=True)
 
 
+def get_hosts():
+    '''gets all 9 hosts (user and ip) from hosts config file '''
+    
+    with open(hosts_config, 'r') as file:
+        hosts_yaml = yaml.safe_load(file)
+
+    return hosts_yaml
+
+
 def set_package_outstanding(node, pkgname):
     '''set given package to outstanding '''
 
@@ -260,8 +267,12 @@ def set_package_outstanding(node, pkgname):
 def send_next_qa_package(node):
     '''grabs next new package for given QA node, then sends '''
 
+    hosts_yaml = get_hosts()
+
+    # host = host name in ssh config, user from hosts.yaml
     host = node + '_qa'
-    destination = f'{host}:/home/it490/packages/'
+    user = hosts_yaml['quality_assurance'][node][0]
+    destination = f'{host}:/home/{user}/packages/'
 
     query = "select pkgpath from package where pkgsource=%s and pkgstatus='new' order by pkgid asc limit 1;"
     val = (node,)
@@ -275,7 +286,7 @@ def send_next_qa_package(node):
 
     # send package to QA node
     subprocess.run(['scp', full_pkg_path, destination])
-    
+
     emit_log(f'Successfully sent QA {node} package.')
 
     # set sent package to 'outstanding'

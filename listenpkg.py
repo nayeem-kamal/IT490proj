@@ -74,7 +74,8 @@ def new_package(filename):
         if node_ready['ready']:
             db.emit_log(f"{node_ready['node']} is ready, now sending..")
             send.send_next_qa(node_ready['node'])
-
+        else:
+            db.emit_log(f"{node_ready['node']} currently not ready.")
 
 def process_rollback(filename):
     pass

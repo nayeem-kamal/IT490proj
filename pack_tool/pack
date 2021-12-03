@@ -3,10 +3,6 @@
 Pack tool for making and sending
 packages to deployment server
 
-first pass
-
-will probably become a class
-
 package naming convention: samplepak-1.0
 '''
 import fire
@@ -36,9 +32,8 @@ def get_config():
 
 
 def emit_log(yaml_dict):
-    '''writes to log file'''
+    '''Takes in dict of pkg information, writes to log file'''
 
-    #time = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
     time = datetime.datetime.now().ctime()
     config_yaml = get_config()
 
@@ -53,7 +48,7 @@ def get_file_paths(args, root):
 
     # directory traversal to establish full paths for files
     installpaths = {}
-    duplicate_check = []
+    duplicate_check = {}
     for dir_name, sub_dir_list, file_list in os.walk(root):
         if '.git' not in dir_name:
             if 'pycache' not in dir_name:
@@ -68,18 +63,27 @@ def get_file_paths(args, root):
                         if fname not in installpaths:
                             installpaths[fname] = directory_name+fname
                         else:
-                            duplicate_check.append((fname, directory_name+fname))
+                            if fname not in duplicate_check:
+                                duplicate_check[fname] = [directory_name+fname]
+                                duplicate_check[fname].append(installpaths[fname])
+                            else:
+                                duplicate_check[fname].append(directory_name+fname)
 
     # check if all given filenames have found their paths
     if len(installpaths) != len(args):
         sys.exit("Not all files found, check names")
 
-    # duplicate checking (not finished)
-    if len(duplicate_check) > len(installpaths):
+    # duplicate checking
+    if len(duplicate_check) >= 1:
         print('These paths were found with duplicate file names:')
-        for dup in duplicate_check:
-            print(dup)
-            print(installpaths[dup[1]])
+        for key in duplicate_check:
+            print(f'{key}:')
+            for path in duplicate_check[key]:
+                print(f'\t{duplicate_check[key].index(path)}: {path}')
+            correct_path = 1000
+            while correct_path not in range(0, len(duplicate_check[key])):
+                correct_path = int(input('Choose correct path by number: '))
+            installpaths[key] = duplicate_check[key][correct_path]
 
     return installpaths
 
@@ -122,13 +126,13 @@ def make(pkgname, *args):
     subprocess.run(f'tar -czf {pkgname}{pkg_extension} *', cwd=config_yaml['tmp_path'], shell=True)
 
     # send pkg.tar.gz to deployment server
-    subprocess.run(['scp', config_yaml['tmp_path']+pkgname+pkg_extension, deployment_server])
+    #subprocess.run(['scp', config_yaml['tmp_path']+pkgname+pkg_extension, deployment_server])
 
     # remove all files in tmp, assuming ubuntu gio for now, not using rm * for safety
     #subprocess.run('gio trash *', cwd=config_yaml['tmp_path'], shell=True)
-    tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
-    for file in tmp_file_list:
-        os.remove(file)
+    #tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
+    #for file in tmp_file_list:
+    #    os.remove(file)
 
     # add package details to log
     emit_log(yaml_dict)

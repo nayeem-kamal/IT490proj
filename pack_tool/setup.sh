@@ -14,6 +14,8 @@ else
 		source ~/.bashrc
 		chmod +x pack
 		mkdir -p ~/.config/packtool/tmp
+		mkdir ~/.config/packtool/incoming
+		mkdir ~/.config/packtool/backup
 		touch $HOME/.config/packtool/logs.log
 		echo "tmp_path: $HOME/.config/packtool/tmp/" >> ~/.config/packtool/config.yaml
 		echo "log_path: $HOME/.config/packtool/logs.log" >> ~/.config/packtool/config.yaml
