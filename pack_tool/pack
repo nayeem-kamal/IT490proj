@@ -195,17 +195,20 @@ def repack_tar_gz(pkg_yaml):
     # create new tar.gz from tmp files, change working dir to tmp then execute command
     subprocess.run(f'tar -czf {pkgname}{pkg_extension} *', cwd=tmp_path, shell=True)
 
-    # move new tar.gz to storage
+    # move tar.gz to outstanding_packages
     shutil.move(tmp_path+pkgname+pkg_extension, outstanding_path)
 
+    # remove original tar.gz from new_packages
+    os.remove(config_yaml['new_pkg_path']+pkgname+pkg_extension)
 
-def pack_backup(pkg_yaml, bak_tmp):
+
+def pack_backup(new_pkg_name, bak_tmp):
     '''
     tar.gz the current backup file from the last installation
     stored in tmp until backup dir is scrubbed
     '''
     pkg_ext = '.tar.gz'
-    pkgname = f'backup_to_{pkg_yaml["pkgname"]}'
+    pkgname = f'backup_to_{new_pkg_name}'
     config_yaml = get_config()
     
     # tar.gz the files in bak_tmp
@@ -241,14 +244,14 @@ def install(pkgname):
     # grab install paths from new pkg yaml
     path_dict = pkg_yaml['install']
 
-    # to store package/state reconstruction information 
+    # to store package/state reconstruction information
     updated_files = {}
     new_files = {}
     new_dirs_and_files = {}
     # if existing, copy file to backup directory, take note in yaml
     # if not existing but parent directories exist, take note in yaml
     # if not existing and parent directories not existing, take note in yaml
-    
+
     # dynamically make backup tmp while creating backup package
     base_path = config_path[:config_path.index('config.yaml')]
     bak_tmp = base_path+'bak_tmp/'
@@ -281,6 +284,9 @@ def install(pkgname):
     for key in path_dict:
         shutil.copy(config_yaml['tmp_path']+key, path_dict[key])
 
+    # repacks installed pkg, moves to outstanding dir
+    repack_tar_gz(pkg_yaml)
+
     # removes all loose files in tmp dir (from the installed pkg)
     tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
     for file in tmp_file_list:
@@ -290,18 +296,15 @@ def install(pkgname):
     with open(bak_tmp+'rollback.yaml', 'w') as file:
         yaml.dump(rollback_dict, file, sort_keys=False)
 
-    # repacks installed pkg, moves to outstanding dir
-    repack_tar_gz(pkg_yaml)
-
     # packs up backup files and rollback.yaml in bak_tmp
-    # mvs the tar.gz to backups
-    pack_backup(pkg_yaml, bak_tmp)
+    # mvs the tar.gz to backups, embeds pkg installed name into backups name
+    pack_backup(pkg_yaml['pkgname'], bak_tmp)
 
     # removes all loose files in bak_tmp
     bak_tmp_file_list = glob.glob(bak_tmp+"*")
     for file in bak_tmp_file_list:
         os.remove(file)
-    
+
     # removes the bak_tmp directory
     os.rmdir(bak_tmp)
 
