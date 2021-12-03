@@ -28,19 +28,13 @@ conn = mysql.connector.connect(
 def emit_log(message, send_log=False):
     '''emits logs to log_path'''
 
-    #time = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
     time = datetime.datetime.now().ctime()
-
-    if send_log:
-        with open(log_path2, 'a') as file:
-            file.write(f'{message} - {time}\n')
-    else:
-        with open(log_path, 'a') as file:
-            file.write(f'\t{message} - {time}\n')
+    with open(log_path, 'a') as file:
+        file.write(f'\t{message} - {time}\n')
 
 
 def node_ready(node):
-    ''' check outstanding status of a node who just received a new package'''
+    ''' check outstanding status of a node who has an incoming new package'''
 
     query = "select * from package where pkgstatus='outstanding' and pkgsource=%s;"
     val = (node,)
@@ -74,10 +68,6 @@ def repack_tar_gz(pkg_yaml):
 
 def unpack_tar_gz(source_path):
     '''unpacks tar to tmp to pull and easily add pkgid to pkg.yaml'''
-
-    # if anything in tmp, delete it
-    #command = f'gio trash {tmp_path}*'
-    #os.system(command)
 
     # unpack tar.gx to tmp
     command = f"tar -xf {source_path} -C {tmp_path}"
@@ -246,7 +236,7 @@ def send_package(node, pkgid_and_pkgpath):
 
 def get_hosts():
     '''gets all 9 hosts (user and ip) from hosts config file '''
-    
+
     with open(hosts_config, 'r') as file:
         hosts_yaml = yaml.safe_load(file)
 

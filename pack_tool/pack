@@ -31,14 +31,21 @@ def get_config():
     return config_yaml
 
 
-def emit_log(yaml_dict):
+def emit_log(yaml_dict, make=False, install=False):
     '''Takes in dict of pkg information, writes to log file'''
+
+    tagline = ''
+    if make:
+        tagline = 'Package Created'
+    elif install:
+        tagline = 'Package Installed'
 
     time = datetime.datetime.now().ctime()
     config_yaml = get_config()
 
     with open(config_yaml['log_path'], 'a') as file:
         file.write('*-\n')
+        file.write(tagline + '\n')
         file.write(time + '\n')
         yaml.dump(yaml_dict, file, sort_keys=False)
 
@@ -135,10 +142,121 @@ def make(pkgname, *args):
     #    os.remove(file)
 
     # add package details to log
-    emit_log(yaml_dict)
+    emit_log(yaml_dict, make=True)
+
+
+def unpack_yaml(pkg_path, tmp_path):
+    '''takes in src path of tar.gz, writes pkg yaml to tmp, returns yaml'''
+
+    # reading pkg.yaml inside package.tar.gz, stores to tmp dir (was easier this way)
+    command = f"tar -xf {pkg_path} -C {tmp_path} pkg.yaml"
+    os.system(command)
+    pkg_yaml_path = tmp_path + 'pkg.yaml'
+    with open(pkg_yaml_path, 'r') as file:
+        pkg_yaml = yaml.safe_load(file)
+
+    # clean file from tmp
+    os.remove(pkg_yaml_path)
+
+    return pkg_yaml
+
+
+def unpack_tar_gz(pkg_path, tmp_path):
+    '''unpacks tar to tmp to read pkg.yaml and install files'''
+
+    # unpack tar.gx to tmp
+    command = f"tar -xf {pkg_path} -C {tmp_path}"
+    os.system(command)
+    pkg_yaml_path = tmp_path + 'pkg.yaml'
+    with open(pkg_yaml_path, 'r') as file:
+        pkg_yaml = yaml.safe_load(file)
+
+    return pkg_yaml
+
 
 def install(pkgname):
-    pass
+    '''
+    Installs next package.
+    Format:
+        'pack install pkgname'
+    '''
+    ext = '.tar.gz'
+
+    if ext not in pkgname:
+        pkgname = pkgname+ext
+
+    config_yaml = get_config()
+
+    # should only be one file in directory
+    file = os.listdir(config_yaml['new_pkg_path'])
+    if not file:
+        print('No packages to install.')
+        return
+    else:
+        pkg_yaml = unpack_tar_gz(config_yaml['new_pkg_path']+file[0], config_yaml['tmp_path'])
+
+    # grab install paths
+    path_dict = pkg_yaml['install']
+
+    # TO DO...
+    # make a pkg.yaml that outlines rollback
+    # keeping track of files that were overwritten
+    # but also keeping track of newly created files that should be
+    # removed on a rollback.. so
+    # if file exists, backup, if not, take note in yaml that it should be removed if rolledback
+    # rollback yaml slightly different structure
+
+    # once backup files and yaml are in backup, tar.gz them, then delete loose files
+    #
+
+
+    # if existing, copy file to backup directory
+    for key in path_dict:
+        if os.path.isfile(path_dict[key]):
+            shutil.copy(path_dict[key], config_yaml['backup_path'])
+
+    # create paths in the case that new folders were created
+    for key in path_dict:
+        # slice off file at the end of file path, create path if nonexistent
+        path = path_dict[key][:path_dict[key].index(key)]
+        if not os.path.isdir(path):
+            command = f'mkdir -p {path}'
+            os.system(command)
+
+    # copy files to given paths to install
+    for key in path_dict:
+        shutil.copy(config_yaml['tmp_path']+key, path_dict[key])
+
+    emit_log(pkg_yaml, install=True)
+
+    # mv package from new packages after install
+    #
+def packages():
+    '''
+    Lists next package ready to be installed.
+    Format:
+        'pack packages'
+    '''
+    config_yaml = get_config()
+
+    # should only be one file in directory
+    file = os.listdir(config_yaml['new_pkg_path'])
+    if not file:
+        print('No packages to install.')
+        return
+    else:
+        pkg_yaml = unpack_yaml(config_yaml['new_pkg_path']+file[0], config_yaml['tmp_path'])
+
+    t = os.path.getmtime(config_yaml['new_pkg_path']+file[0])
+    date = datetime.datetime.fromtimestamp(t).ctime()
+    
+    print('*********************')
+    print('1 Package to install:')
+    print('*********************')
+    print(f'***Filename: {file[0]}***')
+    print(f'***Uploaded: {date}***')
+    for key, value in pkg_yaml.items():
+        print(f'\t{key}: {value}')
 
 
 def setroot(root_path):
@@ -203,6 +321,7 @@ if __name__ == '__main__':
     fire.Fire({
         'make': make,
         'install': install,
+        'packages': packages,
         'setroot': setroot,
         'log': log,
     })
