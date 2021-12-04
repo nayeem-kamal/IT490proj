@@ -9,6 +9,8 @@ if [[ -f $FILE ]];then
 		exit 0
 else
 		pip3 install fire
+		pip3 install paramiko
+		pip3 install scp
 		echo 'export PATH="'$PWD':$PATH"' >> ~/.bashrc
 		echo "pack added to PATH in bashrc."
 		source ~/.bashrc

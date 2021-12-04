@@ -3,6 +3,8 @@
 Database Accessor Methods
 
 '''
+from paramiko import SSHClient
+from scp import SCPClient
 import mysql.connector
 import os
 import yaml
@@ -254,15 +256,39 @@ def set_package_outstanding(node, pkgname):
     conn.commit()
 
 
-def send_next_qa_package(node):
-    '''grabs next new package for given QA node, then sends '''
+def use_scp(full_pkg_path, node, QA=False, PROD=False):
+    '''makes ssh connection, sends package scp'''
 
     hosts_yaml = get_hosts()
+    ip = ''
+    user = ''
+    password = ''
+    remote_path = ''
 
-    # host = host name in ssh config, user from hosts.yaml
-    host = node + '_qa'
-    user = hosts_yaml['quality_assurance'][node][0]
-    destination = f'{host}:/home/{user}/packages/'
+    if QA:
+        ip = hosts_yaml['quality_assurance'][node][0]
+        user = hosts_yaml['quality_assurance'][node][1]
+        password = hosts_yaml['quality_assurance'][node][2]
+        remote_path = '/home/{user}/.config/packtool/new_packages/'
+    elif PROD:
+        ip = hosts_yaml['production'][node][0]
+        user = hosts_yaml['production'][node][1]
+        password = hosts_yaml['production'][node][2]
+        remote_path = '/home/{user}/.config/packtool/new_packages/'
+
+    ssh = SSHClient()
+    ssh.load_system_host_keys()
+    ssh.connect(hostname=ip, username=user, password=password, port=22)
+    scp = SCPClient(ssh.get_transport())
+
+    scp.put(full_pkg_path, remote_path)
+
+    scp.close()
+    ssh.close()
+
+
+def send_next_qa_package(node):
+    '''grabs next new package for given QA node, then sends '''
 
     query = "select pkgpath from package where pkgsource=%s and pkgstatus='new' order by pkgid asc limit 1;"
     val = (node,)
@@ -275,7 +301,8 @@ def send_next_qa_package(node):
     full_pkg_path = dir_to_store + node + '/' + pkgname
 
     # send package to QA node
-    subprocess.run(['scp', full_pkg_path, destination])
+    use_scp(full_pkg_path, node, QA=True)
+    #subprocess.run(['scp', full_pkg_path, destination])
 
     emit_log(f'Successfully sent QA {node} package.')
 

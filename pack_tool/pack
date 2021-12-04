@@ -5,6 +5,8 @@ packages to deployment server
 
 package naming convention: samplepak-1.0
 '''
+from paramiko import SSHClient
+from scp import SCPClient
 import fire
 import socket
 import os
@@ -16,8 +18,13 @@ import shutil
 import datetime
 import glob
 
-deploy_host = 'deploy'
-deployment_server = f'{deploy_host}:/home/deploy/packages/incoming/'
+test_ip = '192.168.100.4'
+deployment_ip = '192.168.194.69'
+deployment_user = 'deploy'
+deployment_pw = 'password'
+deployment_remote_path = '/home/deploy/packages/incoming/'
+#deploy_host = 'deploy'
+#deployment_server = f'{deploy_host}:/home/deploy/packages/incoming/'
 config_path = os.environ['HOME'] + '/.config/packtool/config.yaml'
 pkg_extension = '.tar.gz'
 show_last_logs = 1
@@ -96,6 +103,20 @@ def get_file_paths(args, root):
     return installpaths
 
 
+def use_scp(full_pkg_path, node, QA=False, PROD=False):
+    '''makes ssh connection, sends package scp'''
+
+    ssh = SSHClient()
+    ssh.load_system_host_keys()
+    ssh.connect(hostname=test_ip, username=deployment_user, password=deployment_pw, port=22)
+    scp = SCPClient(ssh.get_transport())
+
+    scp.put(full_pkg_path, deployment_remote_path)
+
+    scp.close()
+    ssh.close()
+
+
 def make(pkgname, *args):
     '''
     Creates and sends package. Format: 'pack make samplepak-1.2 file1 file2 file3'
@@ -134,6 +155,7 @@ def make(pkgname, *args):
     subprocess.run(f'tar -czf {pkgname}{pkg_extension} *', cwd=config_yaml['tmp_path'], shell=True)
 
     # send pkg.tar.gz to deployment server
+    use_scp(config_yaml['tmp_path']+pkgname+pkg_extension)
     #subprocess.run(['scp', config_yaml['tmp_path']+pkgname+pkg_extension, deployment_server])
 
     # remove all files in tmp, assuming ubuntu gio for now, not using rm * for safety
@@ -210,12 +232,13 @@ def pack_backup(new_pkg_name, bak_tmp):
     pkg_ext = '.tar.gz'
     pkgname = f'backup_to_{new_pkg_name}'
     config_yaml = get_config()
-    
+
     # tar.gz the files in bak_tmp
     subprocess.run(f'tar -czf {pkgname}{pkg_ext} *', cwd=bak_tmp, shell=True)
-    
+
     #mv the tar.gz to backups
     shutil.move(bak_tmp+pkgname+pkg_ext, config_yaml['backup_path'])
+
 
 def install(pkgname):
     '''
