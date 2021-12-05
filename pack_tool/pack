@@ -39,7 +39,7 @@ def get_config():
     return config_yaml
 
 
-def emit_log(yaml_dict, make=False, install=False):
+def emit_log(yaml_dict, make=False, install=False approved=False):
     '''Takes in dict of pkg information, writes to log file'''
 
     tagline = ''
@@ -47,6 +47,8 @@ def emit_log(yaml_dict, make=False, install=False):
         tagline = 'Package Created'
     elif install:
         tagline = 'Package Installed'
+    elif approved:
+        tagline = 'Package Approved'
 
     time = datetime.datetime.now().ctime()
     config_yaml = get_config()
@@ -103,7 +105,7 @@ def get_file_paths(args, root):
     return installpaths
 
 
-def use_scp(full_pkg_path, node, QA=False, PROD=False):
+def use_scp(full_pkg_path):
     '''makes ssh connection, sends package scp'''
 
     ssh = SSHClient()
@@ -115,6 +117,13 @@ def use_scp(full_pkg_path, node, QA=False, PROD=False):
 
     scp.close()
     ssh.close()
+
+    return True
+
+
+def no_nothing():
+    '''do nothing for now'''
+    pass
 
 
 def make(pkgname, *args):
@@ -155,17 +164,26 @@ def make(pkgname, *args):
     subprocess.run(f'tar -czf {pkgname}{pkg_extension} *', cwd=config_yaml['tmp_path'], shell=True)
 
     # send pkg.tar.gz to deployment server
-    use_scp(config_yaml['tmp_path']+pkgname+pkg_extension)
+    scp_success = False
+    try:
+        scp_success = use_scp(config_yaml['tmp_path']+pkgname+pkg_extension)
+    except Exception as e:
+        #do_nothing()
+        print(e)
+
     #subprocess.run(['scp', config_yaml['tmp_path']+pkgname+pkg_extension, deployment_server])
 
-    # remove all files in tmp, assuming ubuntu gio for now, not using rm * for safety
-    #subprocess.run('gio trash *', cwd=config_yaml['tmp_path'], shell=True)
-    #tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
-    #for file in tmp_file_list:
-    #    os.remove(file)
+    # remove all files in tmp
+    tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
+    for file in tmp_file_list:
+        os.remove(file)
 
-    # add package details to log
-    emit_log(yaml_dict, make=True)
+    if scp_success:
+        # add package details to log
+        emit_log(yaml_dict, make=True)
+        print('Package created and sent successfully.')
+    else:
+        print('Not currently connected to deployment server.')
 
 
 def unpack_yaml(pkg_path, tmp_path):
@@ -230,7 +248,7 @@ def pack_backup(new_pkg_name, bak_tmp):
     stored in tmp until backup dir is scrubbed
     '''
     pkg_ext = '.tar.gz'
-    pkgname = f'backup_to_{new_pkg_name}'
+    pkgname = f'rollback_{new_pkg_name}'
     config_yaml = get_config()
 
     # tar.gz the files in bak_tmp
@@ -240,16 +258,46 @@ def pack_backup(new_pkg_name, bak_tmp):
     shutil.move(bak_tmp+pkgname+pkg_ext, config_yaml['backup_path'])
 
 
+def update_current_pkgid(new_pkgid):
+    '''
+    Sets currently installed package id for reference.
+    '''
+
+    # grab current config contents
+    config_yaml = get_config()
+
+    config_yaml['last_pkgid'] = config_yaml['current_pkgid']
+    # puts root_path in if nonexistent, overwrites if existent
+    config_yaml['current_pkgid'] = new_pkgid
+
+    # dumps pack out to config file
+    with open(config_path, 'w') as file:
+        yaml.dump(config_yaml, file, sort_keys=False)
+
+
+def get_pkgid_info():
+    '''
+    Gets current last_pkgid and current_pkgid information.
+    returns: dict 
+    '''
+
+    # grab current config contents
+    config_yaml = get_config()
+
+    return {'last_pkgid': config_yaml['last_pkgid'],
+            'current_pkgid': config_yaml['current_pkgid']
+            }
+
+
 def install(pkgname):
     '''
     Installs next package.
     Format:
         'pack install pkgname'
     '''
-    ext = '.tar.gz'
 
-    if ext not in pkgname:
-        pkgname = pkgname+ext
+    if pkg_extension not in pkgname:
+        pkgname = pkgname+pkg_extension
 
     config_yaml = get_config()
 
@@ -307,7 +355,25 @@ def install(pkgname):
     for key in path_dict:
         shutil.copy(config_yaml['tmp_path']+key, path_dict[key])
 
-    # repacks installed pkg, moves to outstanding dir
+    # get current last_pkgid and current_pkgid to store in rollback_dict
+    rollback_dict['pkginfo'] = get_pkgid_info()
+
+    # set currently installed pkgid in config file
+    update_current_pkgid(pkg_yaml['pkgid'])
+
+    # add install/rollback information to installed package yaml
+    pkg_yaml['rollback'] = rollback_dict
+
+    # create rollback dir in tmp to store rollback files
+    # and to be packaged up as an add on to original installed pkg
+    os.mkdir(config_yaml['tmp_path']+'rollback/')
+
+    # mv backup files from bak_tmp to tmp/rollback/
+    backup_file_list = glob.glob(bak_tmp+"*")
+    for file in backup_file_list:
+        shutil.move(bak_tmp+file, config_yaml['tmp_path']+'rollback/')
+
+    # repacks installed pkg with added rollback info and files, moves to outstanding dir
     repack_tar_gz(pkg_yaml)
 
     # removes all loose files in tmp dir (from the installed pkg)
@@ -316,17 +382,17 @@ def install(pkgname):
         os.remove(file)
 
     # dump rollback yaml to file in bak_tmp
-    with open(bak_tmp+'rollback.yaml', 'w') as file:
-        yaml.dump(rollback_dict, file, sort_keys=False)
+    #with open(bak_tmp+'rollback.yaml', 'w') as file:
+    #    yaml.dump(rollback_dict, file, sort_keys=False)
 
     # packs up backup files and rollback.yaml in bak_tmp
     # mvs the tar.gz to backups, embeds pkg installed name into backups name
-    pack_backup(pkg_yaml['pkgname'], bak_tmp)
+    #pack_backup(pkg_yaml['pkgname'], bak_tmp)
 
     # removes all loose files in bak_tmp
-    bak_tmp_file_list = glob.glob(bak_tmp+"*")
-    for file in bak_tmp_file_list:
-        os.remove(file)
+    #bak_tmp_file_list = glob.glob(bak_tmp+"*")
+    #for file in bak_tmp_file_list:
+    #    os.remove(file)
 
     # removes the bak_tmp directory
     os.rmdir(bak_tmp)
@@ -351,7 +417,10 @@ def packages():
         print('No packages to install.')
         return
     else:
-        pkg_yaml = unpack_yaml(config_yaml['new_pkg_path']+file[0], config_yaml['tmp_path'])
+        if pkg_extension not in file[0]:
+            print('Something funny with your package name..')
+        else:
+            pkg_yaml = unpack_yaml(config_yaml['new_pkg_path']+file[0], config_yaml['tmp_path'])
 
     t = os.path.getmtime(config_yaml['new_pkg_path']+file[0])
     date = datetime.datetime.fromtimestamp(t).ctime()
@@ -368,6 +437,57 @@ def packages():
                 print(f'\t  {key2}: {value}')
         else:
             print(f'\t{key}: {pkg_yaml[key]}')
+
+
+def approve():
+    '''
+    approves current outstanding package
+    sends approval to deployment server
+    '''
+
+    config_yaml = get_config()
+
+    pkgname = os.listdir(config_yaml['outstanding_path'])[0]
+
+    response = ''
+    valid_answers = ['yes', 'no']
+    while response not in valid_answers:
+        response = input(f'Approve package {pkgname} (yes/no)?')
+
+    if response == 'no':
+        return
+
+    full_pkg_path = config_yaml['outstanding_path']+pkgname
+
+    # grab yaml from outstanding package
+    pkg_yaml = unpack_yaml(full_pkg_path, config_yaml['tmp_path'])
+
+    # change status to approved
+    pkg_yaml['pkgstatus'] = 'approved'
+
+    # sets approval name for deployment server
+    approval_name = pkg.approved.yaml
+
+    # writes pkg approval yaml to tmp dir
+    with open(config_yaml['tmp_path']+approval_name, 'w') as file:
+        yaml.dump(pkg_yaml, file, sort_keys=False)
+
+    # attempt scp transfer
+    scp_success = False
+    try:
+        scp_success = use_scp(config_yaml['tmp_path']+approval_name)
+    except Exception as e:
+        print(e)
+
+    # if scp succeeded, rm the outstanding package
+    if scp_success:
+        emit_log(pkg_yaml, approved=True)
+        print('Package successfully approved.')
+        os.remove(config_yaml['outstanding_path']+pkgname)
+    else:
+        print('Not currently connected to deployment server.')
+
+    os.remove(config_yaml['tmp_path']+approval_name)
 
 
 def setroot(root_path):

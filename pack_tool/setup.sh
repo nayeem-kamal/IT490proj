@@ -25,6 +25,8 @@ else
 		echo "new_pkg_path: $HOME/.config/packtool/new_packages/" >> ~/.config/packtool/config.yaml
 		echo "backup_path: $HOME/.config/packtool/backup/" >> ~/.config/packtool/config.yaml
 		echo "outstanding_path: $HOME/.config/packtool/outstanding_packages/" >> ~/.config/packtool/config.yaml
+		echo "last_pkgid: none" >> ~/.config/packtool/config.yaml
+		echo "current_pkgid: none" >> ~/.config/packtool/config.yaml
 		
 		echo "config folder created: ~/.config/packtool/"
 fi

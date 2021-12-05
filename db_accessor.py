@@ -16,6 +16,7 @@ import glob
 dir_to_scan = '/home/deploy/packages/incoming/'
 dir_to_store = '/home/deploy/packages/package_storage/'
 tmp_path = '/home/deploy/packages/tmp/'
+deck_path = '/home/deploy/packages/on_deck/'
 log_path = '/home/deploy/packages/pack.log'
 hosts_config = '/home/deploy/packages/hosts.yaml'
 
@@ -84,7 +85,7 @@ def unpack_tar_gz(source_path):
 
 
 def unpack_yaml(source_path):
-    '''takes in src path of tar.gz, writes pkg yaml to tmp, returns [yaml, path]'''
+    '''takes in src path of tar.gz, writes pkg yaml to tmp, returns yaml'''
 
     # reading pkg.yaml inside package.tar.gz, stores to tmp dir (was easier this way)
     command = f"tar -xf {source_path} -C {tmp_path} pkg.yaml"
@@ -95,7 +96,7 @@ def unpack_yaml(source_path):
 
     # clean file from tmp
     os.remove(pkg_yaml_path)
-    emit_log('yaml grab successful')
+    emit_log('yaml grab for duplicate checking successful')
     return pkg_yaml
 
 
@@ -269,12 +270,12 @@ def use_scp(full_pkg_path, node, QA=False, PROD=False):
         ip = hosts_yaml['quality_assurance'][node][0]
         user = hosts_yaml['quality_assurance'][node][1]
         password = hosts_yaml['quality_assurance'][node][2]
-        remote_path = '/home/{user}/.config/packtool/new_packages/'
+        remote_path = f'/home/{user}/.config/packtool/new_packages/'
     elif PROD:
         ip = hosts_yaml['production'][node][0]
         user = hosts_yaml['production'][node][1]
         password = hosts_yaml['production'][node][2]
-        remote_path = '/home/{user}/.config/packtool/new_packages/'
+        remote_path = f'/home/{user}/.config/packtool/new_packages/'
 
     ssh = SSHClient()
     ssh.load_system_host_keys()
@@ -285,6 +286,21 @@ def use_scp(full_pkg_path, node, QA=False, PROD=False):
 
     scp.close()
     ssh.close()
+
+    return True
+
+
+def set_on_deck(full_pkg_path, pkgname, node, QA=False, PROD=False):
+    '''
+    In event that a node receives a new package, is ready for a new package,
+    however sending the package fails due to node being offline, the package will
+    be held on_deck and deploy once node is online
+    Takes in str:full pkg path, str:recipient node, and whether its for QA or PROD
+    '''
+    full_deck_path = deck_path + node + '/' + pkgname
+    shutil.copy(full_pkg_path, full_deck_path)
+
+    emit_log(f'On deck successful for {node}')
 
 
 def send_next_qa_package(node):
@@ -301,10 +317,19 @@ def send_next_qa_package(node):
     full_pkg_path = dir_to_store + node + '/' + pkgname
 
     # send package to QA node
-    use_scp(full_pkg_path, node, QA=True)
+    scp_success = False
+    try:
+        scp_success = use_scp(full_pkg_path, node, QA=True)
+    except Exception as e:
+        emit_log(e)
     #subprocess.run(['scp', full_pkg_path, destination])
 
-    emit_log(f'Successfully sent QA {node} package.')
-
-    # set sent package to 'outstanding'
+    if scp_success:
+        emit_log(f'Successfully sent QA {node} package.')
+        # set sent package to 'outstanding'
+    else:
+        emit_log(f'QA {node} not available, placing package on deck.')
+        set_on_deck(full_pkg_path, pkgname, node, QA=True)
+    
+    # package considered outstanding whether on deck or sent
     set_package_outstanding(node, pkgname)
