@@ -242,20 +242,14 @@ def repack_tar_gz(pkg_yaml):
     os.remove(config_yaml['new_pkg_path']+pkgname+pkg_extension)
 
 
-def pack_backup(new_pkg_name, bak_tmp):
+def pack_approval(outstanding_path, approval_name):
     '''
     tar.gz the current backup file from the last installation
     stored in tmp until backup dir is scrubbed
     '''
-    pkg_ext = '.tar.gz'
-    pkgname = f'rollback_{new_pkg_name}'
-    config_yaml = get_config()
-
     # tar.gz the files in bak_tmp
-    subprocess.run(f'tar -czf {pkgname}{pkg_ext} *', cwd=bak_tmp, shell=True)
+    subprocess.run(f'tar -czf {approval_name} *', cwd=outstanding_path, shell=True)
 
-    #mv the tar.gz to backups
-    shutil.move(bak_tmp+pkgname+pkg_ext, config_yaml['backup_path'])
 
 
 def update_current_pkgid(new_pkgid):
@@ -466,18 +460,19 @@ def approve():
 
     full_pkg_path = config_yaml['outstanding_path']+pkgname
 
-    # grab yaml from outstanding package
-    pkg_yaml = unpack_yaml(full_pkg_path, config_yaml['tmp_path'])
+    # unpack tar.gz from outstanding package to tmp, grab yaml
+    pkg_yaml = unpack_tar_gz(full_pkg_path, config_yaml['tmp_path'])
 
     # change status to approved
     pkg_yaml['pkgstatus'] = 'approved'
 
-    # sets approval name for deployment server
-    approval_name = 'pkg.approved.yaml'
-
     # writes pkg approval yaml to tmp dir
-    with open(config_yaml['tmp_path']+approval_name, 'w') as file:
+    with open(config_yaml['tmp_path']+'pkg.yaml', 'w') as file:
         yaml.dump(pkg_yaml, file, sort_keys=False)
+
+    # .tar.gz approval package of items in tmp
+    approval_name = pkg_yaml['pkgname']+'.appd.tar.gz'
+    subprocess.run(f'tar -czf {approval_name} *', cwd=config_yaml['outstanding_path'], shell=True)
 
     # attempt scp transfer
     scp_success = False
@@ -494,7 +489,20 @@ def approve():
     else:
         print('Not currently connected to deployment server.')
 
+    # remove current .tar.gz from outstanding dir
     os.remove(config_yaml['tmp_path']+approval_name)
+
+    # rm files in tmp/rollback dir before deleting
+    rollback_file_list = glob.glob(config_yaml['tmp_path']+'rollback/*')
+    for file in rollback_file_list:
+        os.remove(file)
+    # rm rollback dir in tmp before scrubbing tmp
+    os.rmdir(config_yaml['tmp_path']+'rollback/')
+
+    # removes all loose files in tmp dir (from the recent .tar.gz creation)
+    tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
+    for file in tmp_file_list:
+        os.remove(file)
 
 
 def setroot(root_path):

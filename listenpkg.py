@@ -27,9 +27,8 @@ deck_paths = {
         'dmz': deck_path+'dmz/',
         }
 new_pkg_type = '.tar.gz'
-rollback_type = '.rb.yaml'
-pass_type = '.pass.yaml'
-fail_type = '.fail.yaml'
+rollback_ext = '.rb.'
+approved_ext = '.appd.'
 log_path = '/home/deploy/packages/pack.log'
 
 
@@ -71,13 +70,15 @@ def new_package(filename):
         else:
             db.emit_log(f"{node_ready['node']} currently not ready.")
 
+
+def approve_package(filename):
+    '''sets the given package to passed, then sends package to prod'''
+
+    emit_log('Appd Packaged Detected.', filename)
+
+
 def process_rollback(filename):
     pass
-
-
-def passed_package(filename):
-    '''sets the given package to passed, then sends package to prod'''
-    db.set_passed_package(filename)
 
 
 def failed_package(filename):
@@ -109,7 +110,7 @@ def check_deck():
 
 
 # Main Entry #
-# process package that is either new, passed or failed
+# process package that is either new, approved or rolled back
 while True:
     try:
 
@@ -121,16 +122,8 @@ while True:
         for filename in os.listdir(dir_to_scan):
             if filename.endswith(new_pkg_type):
                 new_package(filename)
-            elif filename.endswith(rollback_type):
-                emit_log(filename, rollback=True)
-                process_rollback(filename)
-            elif filename.endswith(pass_type):
-                emit_log(filename, passed=True)
-                passed_package(filename)
-                send.send_next_prod(filename)
-            elif filename.endswith(fail_type):
-                emit_log(filename, failed=True)
-                failed_package(filename)
+            elif approved_ext in filename:
+                approve_package(filename)
             else:
                 print("No files..")
     except Exception as e:
