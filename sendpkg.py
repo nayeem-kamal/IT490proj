@@ -15,4 +15,5 @@ def send_next_qa(node):
 def send_next_prod(node):
     '''sends passed package to prod node'''
 
-    db.emit_log('Sending PROD {node} next package')
+    db.send_next_prod_package(node)
+    #db.emit_log('Sending PROD {node} next package')

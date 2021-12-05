@@ -306,6 +306,10 @@ def install(pkgname):
     else:
         pkg_yaml = unpack_tar_gz(config_yaml['new_pkg_path']+file[0], config_yaml['tmp_path'])
 
+    response = ''
+    answers = ['yes', 'no']
+    while response not in answers:
+        response = input(f'Install {pkg_yaml["pkgname"]} on QA {pkg_yaml["pkgsource"]} (yes/no)? ')
     # grab install paths from new pkg yaml
     path_dict = pkg_yaml['install']
 
@@ -453,7 +457,7 @@ def approve():
     response = ''
     valid_answers = ['yes', 'no']
     while response not in valid_answers:
-        response = input(f'Approve package {pkgname} (yes/no)?')
+        response = input(f'Approve package {pkgname} (yes/no)? ')
 
     if response == 'no':
         return
@@ -472,7 +476,7 @@ def approve():
 
     # .tar.gz approval package of items in tmp
     approval_name = pkg_yaml['pkgname']+'.appd.tar.gz'
-    subprocess.run(f'tar -czf {approval_name} *', cwd=config_yaml['outstanding_path'], shell=True)
+    subprocess.run(f'tar -czf {approval_name} *', cwd=config_yaml['tmp_path'], shell=True)
 
     # attempt scp transfer
     scp_success = False
@@ -567,6 +571,7 @@ if __name__ == '__main__':
     fire.Fire({
         'make': make,
         'install': install,
+        'approve': approve,
         'packages': packages,
         'setroot': setroot,
         'log': log,

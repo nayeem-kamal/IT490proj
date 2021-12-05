@@ -17,6 +17,7 @@ dir_to_scan = '/home/deploy/packages/incoming/'
 dir_to_store = '/home/deploy/packages/package_storage/'
 tmp_path = '/home/deploy/packages/tmp/'
 deck_path = '/home/deploy/packages/on_deck/'
+prod_deck_path = '/home/deploy/packages/prod_deck/'
 log_path = '/home/deploy/packages/pack.log'
 hosts_config = '/home/deploy/packages/hosts.yaml'
 
@@ -173,17 +174,57 @@ def does_pkg_exist(filename):
         return False
 
 
-def set_package_passed(filename):
+def prod_ready(node):
+    '''check outprod status of a node who has an incoming approved pkg'''
+
+    query = "select * from package where pkgstatus='outprod' and pkgsource=%s;"
+    val = (node,)
+    cursor = conn.cursor()
+    cursor.execute(query, val)
+    query_result = cursor.fetchall()
+
+    if not query_result:
+        return True
+    else:
+        return False
+
+
+def set_package_approval(filename):
     '''
-    change status of package in database
+    change status of package in database,
+    replace file with corresponding one in package storage
+    as to have an updated yaml with rollback information
     '''
     pkg_yaml = unpack_yaml(dir_to_scan + filename)
 
-    query = "update package set pkgstatus='passed' where pkgid=%s"
+    # change status
+    query = "update package set pkgstatus='approved' where pkgid=%s"
     val = (pkg_yaml['pkgid'],)
     cursor = conn.cursor()
     cursor.execute(query, val)
     conn.commit()
+
+    # replace corresponding pkg in storage with this new version
+    # also change name back to pkg.tar.gz from pkg.appd.tar.gz
+
+    pkgname = pkg_yaml['pkgname']+'.tar.gz'
+
+    # instead of straight delete, mv original pkg 
+    # to tmp for saftey until replace is confirmed
+    shutil.move(dir_to_store+pkg_yaml['sourcenode']+'/'+pkgname, tmp_path)
+
+    # mv updated package to storage
+    shutil.move(dir_to_scan+filename, dir_to_store+pkg_yaml['sourcenode']+'/'+pkgname)
+
+    # rm old package stored in tmp
+    os.remove(tmp_path+pkgname)
+
+    # if prod node has no pkgs waiting for install on that system, 
+    # send next package
+    if prod_ready(pkg_yaml['sourcenode']):
+        return {'node': pkg_yaml['sourcenode'], 'ready': True}
+    else:
+        return {'node': pkg_yaml['sourcenode'], 'ready': False}
 
 
 def check_status():
@@ -247,7 +288,10 @@ def get_hosts():
 
 
 def set_package_outstanding(node, pkgname):
-    '''set given package to outstanding '''
+    '''set given package to outstanding'''
+
+    # 'outstanding' is the notation used for pkgs being sent
+    # to QA and are waiting on approval from QA
 
     emit_log(f'Setting {node} {pkgname} to outstanding')
     query = "update package set pkgstatus='outstanding' where pkgsource=%s and pkgpath=%s;"
@@ -255,6 +299,22 @@ def set_package_outstanding(node, pkgname):
     cursor = conn.cursor()
     cursor.execute(query, val)
     conn.commit()
+
+
+def set_package_outprod(node, pkgname):
+    '''set given package to outprod'''
+
+    # 'outprod' is the notation used for approved pkgs being sent
+    # to production which are waiting to be installed on that machine.
+    # once installed, this notation is changed to 'production'
+
+    emit_log(f'Setting {node} {pkgname} to outprod')
+    query = "update package set pkgstatus='outprod' where pkgsource=%s and pkgpath=%s;"
+    val = (node, pkgname)
+    cursor = conn.cursor()
+    cursor.execute(query, val)
+    conn.commit()
+
 
 
 def use_scp(full_pkg_path, node, QA=False, PROD=False):
@@ -295,12 +355,17 @@ def set_on_deck(full_pkg_path, pkgname, node, QA=False, PROD=False):
     In event that a node receives a new package, is ready for a new package,
     however sending the package fails due to node being offline, the package will
     be held on_deck and deploy once node is online
-    Takes in str:full pkg path, str:recipient node, and whether its for QA or PROD
+    Takes in str:full_pkg_path, str:recipient_node, and whether its for QA or PROD
     '''
-    full_deck_path = deck_path + node + '/' + pkgname
-    shutil.copy(full_pkg_path, full_deck_path)
 
-    emit_log(f'On deck successful for {node}')
+    if QA:
+        full_deck_path = deck_path + node + '/' + pkgname
+        shutil.copy(full_pkg_path, full_deck_path)
+        emit_log(f'On QA deck successful for {node}')
+    elif PROD:
+        full_deck_path = prod_deck_path + node + '/' + pkgname
+        shutil.copy(full_pkg_path, full_deck_path)
+        emit_log(f'On PROD deck successful for {node}')
 
 
 def send_next_qa_package(node):
@@ -311,6 +376,10 @@ def send_next_qa_package(node):
     cursor = conn.cursor()
     cursor.execute(query, val)
     query_result = cursor.fetchall()
+
+    if not query_result:
+        emit_log('No new packages detected for QA {node}')
+        return
 
     pkgname = query_result[0][0]
 
@@ -330,6 +399,44 @@ def send_next_qa_package(node):
     else:
         emit_log(f'QA {node} not available, placing package on deck.')
         set_on_deck(full_pkg_path, pkgname, node, QA=True)
-    
+
     # package considered outstanding whether on deck or sent
     set_package_outstanding(node, pkgname)
+
+    return True
+
+def send_next_prod_package(node):
+    '''grabs next new package for given PROD node, then sends'''
+
+    query = "select pkgpath from package where pkgsource=%s and pkgstatus='approved' order by pkgid asc limit 1;"
+    val = (node,)
+    cursor = conn.cursor()
+    cursor.execute(query, val)
+    query_result = cursor.fetchall()
+
+    if not query_result:
+        return False
+
+    pkgname = query_result[0][0]
+
+    full_pkg_path = dir_to_store + node + '/' + pkgname
+
+    # send package to QA node
+    scp_success = False
+    try:
+        scp_success = use_scp(full_pkg_path, node, PROD=True)
+    except Exception as e:
+        emit_log(e)
+    #subprocess.run(['scp', full_pkg_path, destination])
+
+    if scp_success:
+        emit_log(f'Successfully sent PROD {node} package.')
+        # set sent package to 'outstanding'
+    else:
+        emit_log(f'PROD {node} not available, placing package on prod deck.')
+        set_on_deck(full_pkg_path, pkgname, node, PROD=True)
+
+    # package considered outprod whether on deck or sent
+    set_package_outprod(node, pkgname)
+
+    return True
