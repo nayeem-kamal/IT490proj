@@ -39,7 +39,7 @@ def get_config():
     return config_yaml
 
 
-def emit_log(yaml_dict, make=False, install=False approved=False):
+def emit_log(yaml_dict, make=False, install=False, approved=False):
     '''Takes in dict of pkg information, writes to log file'''
 
     tagline = ''
@@ -371,10 +371,17 @@ def install(pkgname):
     # mv backup files from bak_tmp to tmp/rollback/
     backup_file_list = glob.glob(bak_tmp+"*")
     for file in backup_file_list:
-        shutil.move(bak_tmp+file, config_yaml['tmp_path']+'rollback/')
+        shutil.move(file, config_yaml['tmp_path']+'rollback/')
 
     # repacks installed pkg with added rollback info and files, moves to outstanding dir
     repack_tar_gz(pkg_yaml)
+
+    # rm files in rollback dir before deleting
+    rollback_file_list = glob.glob(config_yaml['tmp_path']+'rollback/*')
+    for file in rollback_file_list:
+        os.remove(file)
+    # rm rollback dir in tmp before scrubbing tmp
+    os.rmdir(config_yaml['tmp_path']+'rollback/')
 
     # removes all loose files in tmp dir (from the installed pkg)
     tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
@@ -397,7 +404,7 @@ def install(pkgname):
     # removes the bak_tmp directory
     os.rmdir(bak_tmp)
 
-    pkg_yaml['details'] = rollback_dict
+    #pkg_yaml['details'] = rollback_dict
     emit_log(pkg_yaml, install=True)
 
     print('Package installed successfully. Check log for details.')
@@ -466,7 +473,7 @@ def approve():
     pkg_yaml['pkgstatus'] = 'approved'
 
     # sets approval name for deployment server
-    approval_name = pkg.approved.yaml
+    approval_name = 'pkg.approved.yaml'
 
     # writes pkg approval yaml to tmp dir
     with open(config_yaml['tmp_path']+approval_name, 'w') as file:
