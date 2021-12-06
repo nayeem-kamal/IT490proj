@@ -106,3 +106,20 @@ def trade(request):
 def accounts(request):
 
     return render(request,'accounts.html')
+
+def learn(request):
+
+    return render(request,'learn.html')
+
+def register(request):
+
+    return render(request,'register.html')
+
+def payment_deposit(request):
+
+    return render(request,'payment_deposit.html')
+
+
+
+
+
