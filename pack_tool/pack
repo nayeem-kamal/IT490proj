@@ -425,11 +425,11 @@ def install(pkgname):
     print('Package installed successfully. Check <pack log> for details.')
 
 
-def rollback(pkgname):
+def rollback():
     '''rollback currently installed package'''
- 
-    if pkg_extension not in pkgname:
-        pkgname = pkgname+pkg_extension
+
+    #if pkg_extension not in pkgname:
+    #    pkgname = pkgname+pkg_extension
 
     config_yaml = get_config()
 
@@ -438,7 +438,7 @@ def rollback(pkgname):
     response = ''
     valid_answers = ['yes', 'no']
     while response not in valid_answers:
-        print('Are you sure?')
+        print('Are you sure:')
         response = input(f'Rollback package {pkgname} (yes/no)? ')
 
     if response == 'no':
@@ -675,6 +675,7 @@ if __name__ == '__main__':
         'make': make,
         'install': install,
         'approve': approve,
+        'rollback', rollback,
         'packages': packages,
         'setroot': setroot,
         'log': log,
