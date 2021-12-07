@@ -13,6 +13,7 @@ def contact(request):
     passwd = []
 
     if request.method == 'POST':
+        print("contactTestPost")
         form = ContactForm(request.POST)
 
         if form.is_valid():
@@ -27,6 +28,7 @@ def contact(request):
         form = ContactForm()
         return render(request, 'testRegistration.html', {'form': form, 'fname': fname, 'lname': lname, 'email': email, 'passwd': passwd})
     else:
+        print("contactTestGet")
         form = ContactForm(request.GET)
 
         if form.is_valid():
@@ -68,15 +70,18 @@ def apiTest(request):
 
 def login(request):
 
-
+    
     email = []
     passwd = []
+    login = DB.DB()
+    print("test")
 
     if request.method == 'POST':
         form = loginForm(request.POST)
-
+        print("testpost")
+        print(request.POST)
         if form.is_valid():
-            login = DB.DB()
+            
 
             email = form.cleaned_data['email']
             passwd = form.cleaned_data['password']
@@ -87,16 +92,19 @@ def login(request):
         return render(request,'login.html',{'form':form})
     else:
         form = loginForm(request.GET)
-
+        print("testget")
         if form.is_valid():
-            login = DB.DB()
+            print("testif")
+            
 
             email = form.cleaned_data['email']
             passwd = form.cleaned_data['password']
             login.login(email,passwd)
 
             print(email, passwd,)
-        form = loginForm()
+            form = loginForm()
+        else:
+            print("this returned false")
         return render(request,'login.html',{'form':form})  
 
 def trade(request):
@@ -104,5 +112,12 @@ def trade(request):
     return render(request,'trade.html')
 
 def accounts(request):
+    email = "testuser7@gmail.com"
+    getAcct = DB.DB.getAccounts(email)
+    print(getAcct)
+    return render(request,'accounts.html', {'getAcct':getAcct})
 
-    return render(request,'accounts.html')
+def history(request):
+    email = "testuser7@gmail.com"
+    getHist = DB.DB.tradeHistory(email,email)
+    return render(request,'history.html', {'getHist':getHist})

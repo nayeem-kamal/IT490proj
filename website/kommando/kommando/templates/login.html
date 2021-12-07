@@ -46,13 +46,15 @@
                   </ul>
             </div>
             <div class="col-9 main-content">
- 
-                <form action="accounts.html" method="POST">
+              <!--"accounts.html" -->
+                <form action = "" method="POST">
                     {% csrf_token %}
                     {{form}}
-                    <input type="submit" value="Login"></submit>
+                    <input type="submit" value="Login"/>
+
                 </form>
                 
+                <a class = "nav-link" href="testRegistration.html">Register Here</a>
             </div>
         </div><!--row-->
     </div> <!-- container-fluid-->

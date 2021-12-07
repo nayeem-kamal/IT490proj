@@ -48,18 +48,37 @@
             </div>
             <div class="col-9 main-content">
  
-            <table>
-                
-                <tr>
-                    <th>Cash Balance</th>
-                    <th>Bitcoin Balance</th>
-                    <th>Ethereum Balance</th>
-                </tr>
-                    <td>$1000</td>
-                    <td>$1000</td>
-                    <td>$1000</td>
-            </table>
-            {{getAcct}}
+                <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Cryptocurrency</th>
+                        <th scope="col">Source</th>
+                        <th scope="col">Destination</th>
+                        <th scope="col">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row">Bitcoin</th>
+                        <td>127.0.0.1</td>
+                        <td>123.123.145.123</td>
+                        <td>$10</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Ethereum</th>
+                        <td>127.128.129.30</td>
+                        <td>164.563.234.223</td>
+                        <td>$10</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Ethereum</th>
+                        <td>128.129.130.144</td>
+                        <td>1.1.1.1</td>
+                        <td>$13</td>
+                      </tr>
+                    </tbody>
+                  </table>
+            {{getHist}}
 
             </div>
         </div><!--row-->
