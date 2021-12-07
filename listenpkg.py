@@ -50,14 +50,6 @@ def emit_log(message, filename):
         file.write('*********************\n')
 
 
-def send_revert(filename):
-    '''
-    probably socket connect which sends revert message
-    to a command line tool
-    '''
-    pass
-
-
 def new_package(filename):
     '''
     takes in str filename, mvs file to storage, store pkg info db
@@ -65,6 +57,7 @@ def new_package(filename):
     '''
 
     emit_log('New Package Detected', filename)
+    os.system("notify-send 'New Package Detected.'")
 
     if db.does_pkg_exist(filename):
         db.emit_log('Duplicate name detected, removing..')
@@ -83,6 +76,7 @@ def approve_package(filename):
     '''sets the given package to approved, then sends package to prod'''
 
     emit_log('Appd Packaged Detected.', filename)
+    os.system("notify-send 'Approved Package Detected.'")
 
     # if setting pkg approval successful,
     # send next package to given production node
@@ -99,13 +93,22 @@ def approve_package(filename):
     send.send_next_qa(qa_node)
 
 
-def process_rollback(filename):
-    pass
+def rollback_package(filename):
+    '''
+    takes in str:filename of rolled back pkg
+    updates pkgstatus in database
+    removes any waiting new packages for that node
+    '''
 
+    emit_log('Rollback Package Detected', filename)
 
-def failed_package(filename):
-    pass
+    with open(dir_to_scan+filename, 'r') as file:
+        pkg_yaml = yaml.safe_load(file)
 
+    node = pkg_yaml['sourcenode']
+    os.system(f"notify-send -u critical 'Rollback Detected on {node}.'")
+
+    db.rollback_package(pkg_yaml)
 
 def do_nothing():
     pass
@@ -119,12 +122,13 @@ def check_deck():
         scp_success = False
         file = os.listdir(deck_paths[key])
         if file:
-            emit_log(f'On deck: QA {key}', file[0])
+            #emit_log(f'On deck: QA {key}', file[0])
+            os.system(f"notify-send -u low 'On deck QA {key}.'")
             try:
                 scp_success = db.use_scp(deck_paths[key]+file[0], key, QA=True)
 
             except Exception as e:
-                db.emit_log(e)
+                #db.emit_log(e)
                 do_nothing()
 
             if scp_success:
@@ -140,12 +144,13 @@ def check_prod_deck():
         scp_success = False
         file = os.listdir(prod_deck_paths[key])
         if file:
-            emit_log(f'On deck PROD {key}', file[0])
+            #emit_log(f'On deck PROD {key}', file[0])
+            os.system(f"notify-send -u low 'On deck PROD {key}.'")
             try:
                 scp_success = db.use_scp(prod_deck_paths[key]+file[0], key, PROD=True)
 
             except Exception as e:
-                db.emit_log(e)
+                #db.emit_log(e)
                 do_nothing()
 
             if scp_success:
@@ -167,6 +172,8 @@ while True:
         for filename in os.listdir(dir_to_scan):
             if approved_ext in filename:
                 approve_package(filename)
+            elif rollback_ext in filename:
+                rollback_package(filename)
             else:
                 if filename.endswith(new_pkg_type):
                     new_package(filename)

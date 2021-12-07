@@ -39,7 +39,7 @@ def get_config():
     return config_yaml
 
 
-def emit_log(yaml_dict, make=False, install=False, approved=False):
+def emit_log(yaml_dict, make=False, install=False, approved=False, rollback=True):
     '''Takes in dict of pkg information, writes to log file'''
 
     tagline = ''
@@ -49,6 +49,8 @@ def emit_log(yaml_dict, make=False, install=False, approved=False):
         tagline = 'Package Installed'
     elif approved:
         tagline = 'Package Approved'
+    elif rollback:
+        tagline = 'Package Rollback'
 
     time = datetime.datetime.now().ctime()
     config_yaml = get_config()
@@ -251,6 +253,22 @@ def pack_approval(outstanding_path, approval_name):
     subprocess.run(f'tar -czf {approval_name} *', cwd=outstanding_path, shell=True)
 
 
+def downgrade_current_pkgid(current_pkgid, last_pkgid):
+    '''
+    Downgrades the current_pkig and last_pkgid in config yaml
+    when a package is rolled back
+    '''
+    
+    config_yaml = get_config()
+
+    # being set to the last and current pkg of the rollbacked back package
+    config_yaml['last_pkgid'] = last_pkgid
+    config_yaml['current_pkgid'] = current_pkg
+
+    # dumps back out to config file
+    wit open(config_path, 'w') as file:
+        yaml.dump(config_yaml, file, sort_keys=False)
+
 
 def update_current_pkgid(new_pkgid):
     '''
@@ -309,7 +327,7 @@ def install(pkgname):
     response = ''
     answers = ['yes', 'no']
     while response not in answers:
-        response = input(f'Install {pkg_yaml["pkgname"]} on QA {pkg_yaml["pkgsource"]} (yes/no)? ')
+        response = input(f'Install {pkg_yaml["pkgname"]} on {pkg_yaml["sourcenode"]} (yes/no)? ')
     # grab install paths from new pkg yaml
     path_dict = pkg_yaml['install']
 
@@ -402,10 +420,95 @@ def install(pkgname):
     # removes the bak_tmp directory
     os.rmdir(bak_tmp)
 
-    #pkg_yaml['details'] = rollback_dict
     emit_log(pkg_yaml, install=True)
 
-    print('Package installed successfully. Check log for details.')
+    print('Package installed successfully. Check <pack log> for details.')
+
+
+def rollback(pkgname):
+    '''rollback currently installed package'''
+ 
+    if pkg_extension not in pkgname:
+        pkgname = pkgname+pkg_extension
+
+    config_yaml = get_config()
+
+    pkgname = os.listdir(config_yaml['outstanding_path'])[0]
+
+    response = ''
+    valid_answers = ['yes', 'no']
+    while response not in valid_answers:
+        print('Are you sure?')
+        response = input(f'Rollback package {pkgname} (yes/no)? ')
+
+    if response == 'no':
+        return
+
+    full_pkg_path = config_yaml['outstanding_path']+pkgname
+
+    # unpack tar.gz from outstanding package to tmp, grab yaml
+    pkg_yaml = unpack_tar_gz(full_pkg_path, config_yaml['tmp_path'])
+
+    rollback_dir = config_yaml['tmp_path']+'rollback/'
+
+    # attempt scp transfer rollback message to server
+    os.rename(config_yaml['tmp_path']+'pkg.yaml', config_yaml['tmp_path']+'pkg.rb.yaml')
+    scp_success = False
+    try:
+        scp_success = use_scp(config_yaml['tmp_path']+'pkg.rb.yaml')
+    except Exception as e:
+        print(e)
+
+    # if scp succeeded, continue with rollback, else stop
+    if scp_success:
+        emit_log(pkg_yaml, rollback=True)
+        print('Rollback message to server successful.')
+        print('Continuing with rollback..')
+    else:
+        sys.exit('Only rollback when connected to deployment server!')
+
+    updated_files = pkg_yaml['rollback']['updated_files']
+    new_files = pkg_yaml['rollback']['new_files']
+    new_dirs_and_files = ['rollback']['new_dirs_and_files']
+
+    # restore the files that were updated (overwritten) on last install
+    if updated_files:
+        for key in updated_files:
+            os.remove(updated_files[key])
+            shutil.move(rollback_dir+key, updated_files[key])
+
+    # delete files that were newly created on last install
+    if new_files:
+        for key in new_files:
+            os.remove(new_files[key])
+
+    # delete files that were newly created in newly created directories
+    # delete newly created directories if they are empty 
+    if new_dirs_and_files:
+        for key in new_dirs_and_files:
+            os.remove(new_dirs_and_files[key])
+
+        # after all files deleted, if dirs empty delete
+        for key in new_dirs_and_files:
+            parent = new_dirs_and_files[key][:new_dirs_and_files[key].index(key)]
+            if len(os.listdir) == 0:
+                os.rmdir(parent)
+
+    # change last_pkgid and current_pkgid in config_yaml
+    # to the corresponding ones from the rolledback package
+    last = pkg_yaml['pkginfo']['last_pkgid']
+    current = ['pkginfo']['current_pkgid']
+    downgrade_current_pkgid(current, last)
+
+    # delete empty rollback dir in tmp dir
+    os.rmdir(config_yaml['tmp_path']+'rollback/')
+
+    # delete loose tmp files in tmp dir
+    tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
+    for file in tmp_file_list:
+        os.remove(file)
+
+    print('Rollback successful. Check <pack log> for details.')
 
 
 def packages():

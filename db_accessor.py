@@ -18,6 +18,7 @@ dir_to_store = '/home/deploy/packages/package_storage/'
 tmp_path = '/home/deploy/packages/tmp/'
 deck_path = '/home/deploy/packages/on_deck/'
 prod_deck_path = '/home/deploy/packages/prod_deck/'
+archive_path = '/home/deploy/packages/archive/'
 log_path = '/home/deploy/packages/pack.log'
 hosts_config = '/home/deploy/packages/hosts.yaml'
 
@@ -209,7 +210,7 @@ def set_package_approval(filename):
 
     pkgname = pkg_yaml['pkgname']+'.tar.gz'
 
-    # instead of straight delete, mv original pkg 
+    # instead of straight delete, mv original pkg
     # to tmp for saftey until replace is confirmed
     shutil.move(dir_to_store+pkg_yaml['sourcenode']+'/'+pkgname, tmp_path)
 
@@ -440,3 +441,36 @@ def send_next_prod_package(node):
     set_package_outprod(node, pkgname)
 
     return True
+
+
+def rollback_package(pkg_yaml):
+    '''
+    updates pkgstatus to failed in database in event of rollback
+    marks any remaining new packages for that node as depreciated (due to potential depends issues)
+    '''
+
+    query = "update package set pkgstatus='failed' where pkgid=%s"
+    val = (pkg_yaml['pkgid'],)
+    cursor = conn.cursor()
+    cursor.execute(query, val)
+    conn.commit()
+
+    emit_log(f'{pkg_yaml["pkgname"]} for {pkg_yaml["sourcenode"]} marked failed.')
+
+    # leaving this here for now, if packages are marked as failed and depreciated in db
+    # shouldn't need to move them on filesystem unless to save space
+
+    #pkgname = pkg_yaml['pkgname'] + '.tar.gz'
+
+    # move rolledback pkg from long term storage to archive dir
+    # just in case its needed for something
+    #shutil.move(dir_to_store+pkgname, archive_path)
+    
+    # if any new packages are waiting for node, mark as depreciated
+    query = "update package set pkgstatus='depreciated' where pkgsource=%s and pkgstatus='new';"
+    val = (pkg_yaml['sourcenode'],)
+    cursor = conn.cursor()
+    cursor.execute(query, val)
+    conn.commit()
+
+    emit_log(f'Any remaining new pkgs for {pkg_yaml["sourcenode"]} depreciated.')
