@@ -572,6 +572,7 @@ def packages():
     else:
         if pkg_extension not in file[0]:
             print('Something funny with your package name..')
+            return
         else:
             pkg_yaml = unpack_yaml(config_yaml['new_pkg_path']+file[0], config_yaml['tmp_path'])
 

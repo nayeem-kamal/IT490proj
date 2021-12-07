@@ -117,7 +117,7 @@ def do_nothing():
     pass
 
 
-def prod_install():
+def prod_install(filename):
     '''
     registed when production successfully installs package
     updates pkgstatus to production
@@ -132,6 +132,7 @@ def prod_install():
 
     db.prod_install(pkg_yaml)
     os.remove(dir_to_scan+filename)
+
 
 def check_deck():
     '''checks deck for waiting packages, attempts to send'''
