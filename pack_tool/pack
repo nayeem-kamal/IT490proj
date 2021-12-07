@@ -410,6 +410,13 @@ def install(pkgname):
     for file in backup_file_list:
         shutil.move(file, config_yaml['tmp_path']+'rollback/')
 
+    # this is to clear the outstanding dir of previously installed package
+    # on production, since production doesn't approve pkgs (which deletes them)
+    if ON_PROD:
+        outstanding_file_list = glob.glob(config_yaml['outstanding_path']+"*")
+        for file in outstanding_file_list:
+            os.remove(file)
+
     # repacks installed pkg with added rollback info and files, moves to outstanding dir
     repack_tar_gz(pkg_yaml)
 

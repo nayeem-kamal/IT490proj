@@ -130,7 +130,10 @@ def prod_install(filename):
     node = pkg_yaml['sourcenode']
     os.system(f"notify-send 'PROD Install for {node}.'")
 
+    # set pkgstatus to production for package
     db.prod_install(pkg_yaml)
+    # send next approved package for node if exists
+    send.send_next_prod(pkg_yaml['sourcenode'])
     os.remove(dir_to_scan+filename)
 
 
