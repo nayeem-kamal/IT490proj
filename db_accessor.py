@@ -379,7 +379,7 @@ def send_next_qa_package(node):
     query_result = cursor.fetchall()
 
     if not query_result:
-        emit_log('No new packages detected for QA {node}')
+        emit_log(f'No new packages detected for QA {node}')
         return
 
     pkgname = query_result[0][0]
@@ -465,7 +465,7 @@ def rollback_package(pkg_yaml):
     # move rolledback pkg from long term storage to archive dir
     # just in case its needed for something
     #shutil.move(dir_to_store+pkgname, archive_path)
-    
+
     # if any new packages are waiting for node, mark as depreciated
     query = "update package set pkgstatus='depreciated' where pkgsource=%s and pkgstatus='new';"
     val = (pkg_yaml['sourcenode'],)
@@ -474,3 +474,15 @@ def rollback_package(pkg_yaml):
     conn.commit()
 
     emit_log(f'Any remaining new pkgs for {pkg_yaml["sourcenode"]} depreciated.')
+
+
+def prod_install(pkg_yaml):
+    '''updates pkgstatus to production for production install'''
+
+    query = "update package set pkgstatus='production' where pkgid=%s"
+    val = (pkg_yaml['pkgid'],)
+    cursor = conn.cursor()
+    cursor.execute(query, val)
+    conn.commit()
+
+    emit_log(f'{pkg_yaml["pkgname"]} for {pkg_yaml["sourcenode"]} marked production.')

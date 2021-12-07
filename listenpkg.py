@@ -23,6 +23,7 @@ tmp_path = dir_to_scan + 'tmp/'
 new_pkg_type = '.tar.gz'
 rollback_ext = '.rb.'
 approved_ext = '.appd.'
+prodinstall_ext = '.prod.'
 log_path = '/home/deploy/packages/pack.log'
 
 # establishing on deck paths for QA and PROD
@@ -111,9 +112,26 @@ def rollback_package(filename):
     db.rollback_package(pkg_yaml)
     os.remove(dir_to_scan+filename)
 
+
 def do_nothing():
     pass
 
+
+def prod_install():
+    '''
+    registed when production successfully installs package
+    updates pkgstatus to production
+    '''
+    emit_log('Production Install Detected', filename)
+
+    with open(dir_to_scan+filename, 'r') as file:
+        pkg_yaml = yaml.safe_load(file)
+
+    node = pkg_yaml['sourcenode']
+    os.system(f"notify-send 'PROD Install for {node}.'")
+
+    db.prod_install(pkg_yaml)
+    os.remove(dir_to_scan+filename)
 
 def check_deck():
     '''checks deck for waiting packages, attempts to send'''
@@ -175,6 +193,8 @@ while True:
                 approve_package(filename)
             elif rollback_ext in filename:
                 rollback_package(filename)
+            elif prodinstall_ext in filename:
+                prod_install(filename)
             else:
                 if filename.endswith(new_pkg_type):
                     new_package(filename)

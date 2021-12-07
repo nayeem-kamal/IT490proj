@@ -258,7 +258,7 @@ def downgrade_current_pkgid(current_pkgid, last_pkgid):
     Downgrades the current_pkig and last_pkgid in config yaml
     when a package is rolled back
     '''
-    
+
     config_yaml = get_config()
 
     # being set to the last and current pkg of the rollbacked back package
@@ -301,6 +301,18 @@ def get_pkgid_info():
             }
 
 
+def prod_rollback_workaround():
+    '''deletes rollback folder in tmp when prod installs'''
+
+    config_yaml = get_config()
+
+    rb_file_list = glob.glob(config_yaml['tmp_path']+'rollback/*')
+    for file in rb_file_list:
+        os.remove(file)
+
+    os.rmdir(config_yaml['tmp_path']+'rollback/')
+
+
 def install(pkgname):
     '''
     Installs next package.
@@ -323,6 +335,15 @@ def install(pkgname):
         return
     else:
         pkg_yaml = unpack_tar_gz(config_yaml['new_pkg_path']+file[0], config_yaml['tmp_path'])
+
+    # this deletes the rollback folder that unzips from the tar in tmp
+    # on the production branch. This is a path of least resistance workaround
+    # for the rollback information already being in the pkg upon production arrival
+    if 'rollback' in pkg_yaml:
+        ON_PROD = True
+        prod_rollback_workaround()
+    else:
+        ON_PROD = False
 
     response = ''
     answers = ['yes', 'no']
@@ -399,6 +420,19 @@ def install(pkgname):
     # rm rollback dir in tmp before scrubbing tmp
     os.rmdir(config_yaml['tmp_path']+'rollback/')
 
+    # before tmp files are deleted, if on production, send back the pkg.yaml
+    # as pkg.prod.yaml to indicate to deployment server a successful install
+    if ON_PROD:
+        # attempt scp transfer prod install message to server
+        os.rename(config_yaml['tmp_path']+'pkg.yaml', config_yaml['tmp_path']+'pkg.prod.yaml')
+        scp_success = False
+        try:
+            scp_success = use_scp(config_yaml['tmp_path']+'pkg.prod.yaml')
+        except Exception as e:
+            print(e)
+            print('Cant send successful install message back to deploy server.')
+            print('Let deployment know this install was successful.')
+
     # removes all loose files in tmp dir (from the installed pkg)
     tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
     for file in tmp_file_list:
@@ -436,7 +470,13 @@ def rollback():
 
     config_yaml = get_config()
 
-    pkgname = os.listdir(config_yaml['outstanding_path'])[0]
+    dir_content = os.listdir(config_yaml['outstanding_path'])
+
+    if not dir_content:
+        print('Nothing to rollback.')
+        return
+    else:
+        pkgname = dir_content[0]
 
     response = ''
     valid_answers = ['yes', 'no']
@@ -494,7 +534,7 @@ def rollback():
         # after all files deleted, if dirs empty delete
         for key in new_dirs_and_files:
             parent = new_dirs_and_files[key][:new_dirs_and_files[key].index(key)]
-            if len(os.listdir) == 0:
+            if len(os.listdir(parent)) == 0:
                 os.rmdir(parent)
 
     # change last_pkgid and current_pkgid in config_yaml
@@ -510,6 +550,8 @@ def rollback():
     tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
     for file in tmp_file_list:
         os.remove(file)
+
+    os.remove(config_yaml['outstanding_path']+pkgname)
 
     print('Rollback successful. Check <pack log> for details.')
 
