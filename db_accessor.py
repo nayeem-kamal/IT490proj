@@ -416,7 +416,8 @@ def send_next_prod_package(node):
     query_result = cursor.fetchall()
 
     if not query_result:
-        return False
+        emit_log(f'No new packages detected for PROD {node}')
+        return
 
     pkgname = query_result[0][0]
 
