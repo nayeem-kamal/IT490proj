@@ -263,10 +263,10 @@ def downgrade_current_pkgid(current_pkgid, last_pkgid):
 
     # being set to the last and current pkg of the rollbacked back package
     config_yaml['last_pkgid'] = last_pkgid
-    config_yaml['current_pkgid'] = current_pkg
+    config_yaml['current_pkgid'] = current_pkgid
 
     # dumps back out to config file
-    wit open(config_path, 'w') as file:
+    with open(config_path, 'w') as file:
         yaml.dump(config_yaml, file, sort_keys=False)
 
 
@@ -426,7 +426,10 @@ def install(pkgname):
 
 
 def rollback():
-    '''rollback currently installed package'''
+    '''
+    Rollback currently installed package.
+    Format: 'pack rollback'
+    '''
 
     #if pkg_extension not in pkgname:
     #    pkgname = pkgname+pkg_extension
@@ -469,7 +472,7 @@ def rollback():
 
     updated_files = pkg_yaml['rollback']['updated_files']
     new_files = pkg_yaml['rollback']['new_files']
-    new_dirs_and_files = ['rollback']['new_dirs_and_files']
+    new_dirs_and_files = pkg_yaml['rollback']['new_dirs_and_files']
 
     # restore the files that were updated (overwritten) on last install
     if updated_files:
@@ -496,8 +499,8 @@ def rollback():
 
     # change last_pkgid and current_pkgid in config_yaml
     # to the corresponding ones from the rolledback package
-    last = pkg_yaml['pkginfo']['last_pkgid']
-    current = ['pkginfo']['current_pkgid']
+    last = pkg_yaml['rollback']['pkginfo']['last_pkgid']
+    current = pkg_yaml['rollback']['pkginfo']['current_pkgid']
     downgrade_current_pkgid(current, last)
 
     # delete empty rollback dir in tmp dir
@@ -549,9 +552,11 @@ def packages():
 
 def approve():
     '''
-    approves current outstanding package
-    sends approval to deployment server
+    Approves current installed package.
+    Format: 'pack approve'
     '''
+    # sends approval to deployment server
+    # needs to be connected to deployment server for completion of approval
 
     config_yaml = get_config()
 
@@ -666,7 +671,7 @@ def log():
         count = count + 1
 
 
-def help():
+def status():
     pass
 
 
@@ -675,7 +680,7 @@ if __name__ == '__main__':
         'make': make,
         'install': install,
         'approve': approve,
-        'rollback', rollback,
+        'rollback': rollback,
         'packages': packages,
         'setroot': setroot,
         'log': log,

@@ -106,9 +106,10 @@ def rollback_package(filename):
         pkg_yaml = yaml.safe_load(file)
 
     node = pkg_yaml['sourcenode']
-    os.system(f"notify-send -u critical 'Rollback Detected on {node}.'")
+    os.system(f"notify-send -u critical 'Rollback Detected for {node}.'")
 
     db.rollback_package(pkg_yaml)
+    os.remove(dir_to_scan+filename)
 
 def do_nothing():
     pass
