@@ -1,35 +1,40 @@
-## Started Package Tool
+## Package Tool
 
-Started on a package tool that can be used to package & send files to deployment server. Current inputs look something like:
+### Instructions:
+
+1. Download pack_tool folder
+
+Where ever you place the folder will be where it's path is when installed. So pick a spot a keep it there.
+
+2. Run setup.sh
+
+> ./setup.sh
+
+Running the script will:
+- install req python libs
+- place tool path in bashrc
+- make proper directorier for tool in (~/.config/packtool/)
+- constructs the packtool config file
+
+Now close current terminal and reopen a fresh terminal.
+
+To check install, type:
+> pack
+
+This should bring up the subcommand documentation
+
+3. Commands
+
+Before making a package, set project root folder:
+> pack setroot ~/folder/project_folder/
 
 To make a package:
-> *command-subcommand-pkgname-files*
+> pack make samplepak-1.0 file1.py file2.html file3.css
 
-> package naming convention: name-version
+Package name must conform to pkg naming convention 'pkgname-2.3'. The make command makes the package and sends it to the deployment server.
 
-> pack make samplepkg-1.2 api_connect.html api_accessor.py
+to be continued..
 
-This makes and sends a tar.gz over scp with the following files:
-* pkg.yaml
-* api_connect.html
-* api_accessor.py
 
-Full paths for files derived from directory traversal. This is assuming from the start each corresponding node (Ex. Frontend) of a given cluster is identical, and any changes to QA and PROD cluster stems from DEV cluster. Sourcenode is derived from the nodes hostname.
 
-Current pkg.yaml:
 
-![currentyaml](img/current_yaml.png)
-
-## Currently: pkg listners/senders and deployment server setup
-
-two versions of listener/sender
-* directly using sockets 
-* scanning destination directories
-
-Currently using scan destination directory method since it was simpler to get up and running. If sockets are necessary then no problem, just more research is needed with ssh key exchange while interfacing with the incoming scp message on the port. 
-
-Scanning destination directories allows the listener to be removed from the key exchange, however if the outgoing packages from deployment server are automated, there will still be key exchange implementation on the sender script. Time will tell whats easiest / necessary.
-
-Currently making some assumptions about the database schema and yaml format that will be inside package.tar.gz. Everything can be adapted according to how things go and whats needed. Just needed a starting point.
-
-![sampletable](img/table_sample.png)

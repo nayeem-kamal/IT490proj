@@ -313,15 +313,15 @@ def prod_rollback_workaround():
     os.rmdir(config_yaml['tmp_path']+'rollback/')
 
 
-def install(pkgname):
+def install():
     '''
     Installs next package.
     Format:
         'pack install pkgname'
     '''
 
-    if pkg_extension not in pkgname:
-        pkgname = pkgname+pkg_extension
+    #if pkg_extension not in pkgname:
+    #    pkgname = pkgname+pkg_extension
 
     config_yaml = get_config()
 
@@ -330,9 +330,9 @@ def install(pkgname):
     if not file:
         print('No packages to install.')
         return
-    elif pkgname not in file[0]:
-        print('Check package name.')
-        return
+    #elif pkgname not in file[0]:
+    #    print('Check package name.')
+    #    return
     else:
         pkg_yaml = unpack_tar_gz(config_yaml['new_pkg_path']+file[0], config_yaml['tmp_path'])
 
@@ -345,10 +345,10 @@ def install(pkgname):
     else:
         ON_PROD = False
 
-    response = ''
-    answers = ['yes', 'no']
-    while response not in answers:
-        response = input(f'Install {pkg_yaml["pkgname"]} on {pkg_yaml["sourcenode"]} (yes/no)? ')
+    #response = ''
+    #answers = ['yes', 'no']
+    #while response not in answers:
+    #    response = input(f'Install {pkg_yaml["pkgname"]} on {pkg_yaml["sourcenode"]} (yes/no)? ')
     # grab install paths from new pkg yaml
     path_dict = pkg_yaml['install']
 
@@ -610,15 +610,21 @@ def approve():
 
     config_yaml = get_config()
 
-    pkgname = os.listdir(config_yaml['outstanding_path'])[0]
+    dir_content = os.listdir(config_yaml['outstanding_path'])
 
-    response = ''
-    valid_answers = ['yes', 'no']
-    while response not in valid_answers:
-        response = input(f'Approve package {pkgname} (yes/no)? ')
-
-    if response == 'no':
+    if not dir_content:
+        print('Nothing to rollback.')
         return
+    else:
+        pkgname = dir_content[0]
+
+    #response = ''
+    #valid_answers = ['yes', 'no']
+    #while response not in valid_answers:
+    #    response = input(f'Approve package {pkgname} (yes/no)? ')
+
+    #if response == 'no':
+    #    return
 
     full_pkg_path = config_yaml['outstanding_path']+pkgname
 
@@ -721,8 +727,109 @@ def log():
         count = count + 1
 
 
-def status():
-    pass
+def make_signal(tmp_path, sig_type):
+    '''makes the signal file for triggering node'''
+
+    # making this yaml on off chance more data needs
+    # to be sent in the future
+
+    if sig_type in 'install':
+        content = {'signal': 'install'}
+        name = 'signal.install.yaml'
+    elif sig_type in 'approve':
+        content = {'signal': 'approve'}
+        name = 'signal.appd.yaml'
+    elif sig_type in 'rollback':
+        content = {'signal': 'rollback'}
+        name = 'signal.rb.yaml'
+
+    with open(tmp_path+name, 'w') as file:
+        yaml.dump(content, file, sort_keys=False)
+
+
+def signal_scp(full_pkg_path, node, QA=False, PROD=False):
+    '''
+    sends signal scp to node for install, approve, rollback command
+    only for deployment server
+    '''
+
+    hosts_config = '/home/deploy/packages/hosts.yaml'
+
+    try:
+        with open(hosts_config, 'r') as file:
+            hosts_yaml = yaml.safe_load(file)
+
+    except Exception as e:
+        sys.exit('Only for use as deployment.')
+
+    ip = ''
+    user = ''
+    password = ''
+    remote_path = ''
+
+    if QA:
+        ip = hosts_yaml['quality_assurance'][node][0]
+        user = hosts_yaml['quality_assurance'][node][1]
+        password = hosts_yaml['quality_assurance'][node][2]
+        remote_path = f'/home/{user}/.config/packtool/new_packages/'
+    elif PROD:
+        ip = hosts_yaml['production'][node][0]
+        user = hosts_yaml['production'][node][1]
+        password = hosts_yaml['production'][node][2]
+        remote_path = f'/home/{user}/.config/packtool/new_packages/'
+
+    ssh = SSHClient()
+    ssh.load_system_host_keys()
+    ssh.connect(hostname=ip, username=user, password=password, port=22)
+    scp = SCPClient(ssh.get_transport())
+
+    scp.put(full_pkg_path, remote_path)
+
+    scp.close()
+    ssh.close()
+
+
+def request(command, node):
+    '''
+    meant for deployment server to send signals for
+    install, rollback, approve
+    '''
+    commands = ['install', 'approve', 'rollback']
+    nodes = ['qa.frontend', 'qa.backend', 'qa.dmz', 'prod.frontend', 'prod.backend', 'prod.dmz']
+    config_yaml = get_config()
+    QA = False
+    PROD = False
+
+    if command not in commands or node not in nodes:
+        sys.exit('incorrect ser.')
+
+    node = nodes.split('.')
+    # determine node network
+    if 'qa' in node[0]:
+        QA=True
+    else:
+        PROD=True
+
+    try:
+        # install
+        if command in commands[0]:
+            make_signal(config_yaml['tmp_path'], commands[0])
+            signal_scp(config_yaml['tmp_path'], node[1], QA=QA, PROD=PROD)
+        # approve
+        elif command in commands[1]:
+            make_signal(config_yaml['tmp_path'], commands[1])
+            signal_scp(config_yaml['tmp_path'], node[1], QA=QA, PROD=PROD)
+        # rollback
+        elif command in commands[2]:
+            make_signal(config_yaml['tmp_path'], commands[2])
+            signal_scp(config_yaml['tmp_path'], node[1], QA=QA, PROD=PROD)
+    except Exception as e:
+        print(e)
+        sys.exit(f'Check if {node} is online.')
+
+    print(f'Request sent to {node}')
+    os.system(f"notify-send 'Requested {node[0]}.{node[1]} to {command}.'")
+
 
 
 if __name__ == '__main__':
