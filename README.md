@@ -4,6 +4,8 @@
 
 ### Instructions:
 
+For Dev usage:
+
 1. Download pack_tool folder
 
 Where ever you place the folder will be where it's path is when installed. So pick a spot a keep it there.
@@ -16,7 +18,7 @@ Where ever you place the folder will be where it's path is when installed. So pi
 Running the script will:
 - install req python libs
 - place tool path in bashrc
-- make proper directorier for tool in (~/.config/packtool/)
+- make proper directory structure for tool in (~/.config/packtool/)
 - constructs the packtool config file
 
 Now close current terminal and reopen a fresh terminal.
@@ -41,8 +43,6 @@ pack make samplepak-1.0 file1.py file2.html file3.css
 ```
 
 Package name must conform to pkg naming convention 'pkgname-2.3'. The make command makes the package and sends it to the deployment server.
-
-to be continued..
 
 
 ## Server Setup Directions
@@ -80,7 +80,8 @@ cp -r packages ~
 check hosts.yaml to ensure accurate host information
 
 1. Copy listener.service to systemd
-Change user and script path for listener as necessary
+
+Change user and script path inside listener as necessary
 
 ```
 sudo cp listener.service /etc/systemd/system/
@@ -97,6 +98,11 @@ in MySQL:
 create database deployment;
 create user 'deploy'@'localhost'
 grant select, update, delete, insert on deployment.* to deploy@localhost;
+```
+
+load .sql file into db
+```
+mysql -u root -p deployment < /path/deployment.sql
 ```
 
 
