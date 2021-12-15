@@ -295,6 +295,7 @@ def set_package_outstanding(node, pkgname):
     # to QA and are waiting on approval from QA
 
     emit_log(f'Setting {node} {pkgname} to outstanding')
+
     query = "update package set pkgstatus='outstanding' where pkgsource=%s and pkgpath=%s;"
     val = (node, pkgname)
     cursor = conn.cursor()

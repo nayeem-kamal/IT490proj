@@ -746,6 +746,8 @@ def make_signal(tmp_path, sig_type):
     with open(tmp_path+name, 'w') as file:
         yaml.dump(content, file, sort_keys=False)
 
+    return name
+
 
 def signal_scp(full_pkg_path, node, QA=False, PROD=False):
     '''
@@ -771,12 +773,12 @@ def signal_scp(full_pkg_path, node, QA=False, PROD=False):
         ip = hosts_yaml['quality_assurance'][node][0]
         user = hosts_yaml['quality_assurance'][node][1]
         password = hosts_yaml['quality_assurance'][node][2]
-        remote_path = f'/home/{user}/.config/packtool/new_packages/'
+        remote_path = f'/home/{user}/.config/packtool/sig_path/'
     elif PROD:
         ip = hosts_yaml['production'][node][0]
         user = hosts_yaml['production'][node][1]
         password = hosts_yaml['production'][node][2]
-        remote_path = f'/home/{user}/.config/packtool/new_packages/'
+        remote_path = f'/home/{user}/.config/packtool/sig_path/'
 
     ssh = SSHClient()
     ssh.load_system_host_keys()
@@ -803,32 +805,39 @@ def request(command, node):
     if command not in commands or node not in nodes:
         sys.exit('incorrect ser.')
 
-    node = nodes.split('.')
+    node = node.split('.')
     # determine node network
     if 'qa' in node[0]:
-        QA=True
+        QA = True
     else:
-        PROD=True
+        PROD = True
 
     try:
         # install
         if command in commands[0]:
-            make_signal(config_yaml['tmp_path'], commands[0])
-            signal_scp(config_yaml['tmp_path'], node[1], QA=QA, PROD=PROD)
+            name = make_signal(config_yaml['tmp_path'], commands[0])
+            signal_scp(config_yaml['tmp_path']+name, node[1], QA=QA, PROD=PROD)
         # approve
         elif command in commands[1]:
-            make_signal(config_yaml['tmp_path'], commands[1])
-            signal_scp(config_yaml['tmp_path'], node[1], QA=QA, PROD=PROD)
+            name = make_signal(config_yaml['tmp_path'], commands[1])
+            signal_scp(config_yaml['tmp_path']+name, node[1], QA=QA, PROD=PROD)
         # rollback
         elif command in commands[2]:
-            make_signal(config_yaml['tmp_path'], commands[2])
-            signal_scp(config_yaml['tmp_path'], node[1], QA=QA, PROD=PROD)
+            name = make_signal(config_yaml['tmp_path'], commands[2])
+            signal_scp(config_yaml['tmp_path']+name, node[1], QA=QA, PROD=PROD)
     except Exception as e:
         print(e)
         sys.exit(f'Check if {node} is online.')
 
-    print(f'Request sent to {node}')
+    # rm loose tmp files
+    tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
+    for file in tmp_file_list:
+        os.remove(file)
+
+    print(f'Request sent to {node[0]}.{node[1]}')
     os.system(f"notify-send 'Requested {node[0]}.{node[1]} to {command}.'")
+
+
 
 
 
@@ -841,4 +850,5 @@ if __name__ == '__main__':
         'packages': packages,
         'setroot': setroot,
         'log': log,
+        'request': request
     })

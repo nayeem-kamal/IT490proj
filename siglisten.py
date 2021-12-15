@@ -7,6 +7,8 @@ import subprocess
 import yaml
 import os
 import time
+import datetime
+import glob
 
 delay = 5
 
@@ -26,16 +28,50 @@ def get_config():
     return config_yaml
 
 
+def emit_log(message):
+    '''emit log to logpath'''
+
+    config_yaml = get_config()
+    time = datetime.datetime.now().ctime()
+
+    with open(config_yaml['log_path'], 'a') as file:
+        file.write('*-\n')
+        file.write(message + ':' + time + '\n')
+
+
+def scrub_signal():
+    '''remove file in sig_path directory'''
+
+    sig_file_list = glob.glob(dir_to_scan+"*")
+    for file in sig_file_list:
+        os.remove(file)
+
+
 def install_package(filename):
-    subprocess.run('pack install')
+    '''auto call the pack tool to install'''
+    emit_log('Remote Install Signal Detected.')
+    os.system('pack install')
+
+    # rm loose signal file
+    scrub_signal()
 
 
 def rollback_package(filename):
-    subprocess.run('pack rollback')
+    '''auto call the pack tool to rollback'''
+    emit_log('Remote Rollback Signal Detected.')
+    os.system('pack rollback')
+
+    # rm loose signal file
+    scrub_signal()
 
 
 def approve_package(filename):
-    subprocess.run('pack approve')
+    '''auto call the pack tool to approve'''
+    emit_log('Remote Approve Signal Detected.')
+    os.system('pack approve')
+
+    # rm loose signal file
+    scrub_signal()
 
 
 while True:
