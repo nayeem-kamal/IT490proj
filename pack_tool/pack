@@ -481,6 +481,8 @@ def install():
             print('Cant send successful install message back to deploy server.')
             print('Let deployment know this install was successful.')
 
+        os.remove(config_yaml['tmp_path']+'install.success.yaml')
+
     print('Package installed successfully. Check <pack log> for details.')
 
 
@@ -883,10 +885,7 @@ def request(command, node):
         os.remove(file)
 
     print(f'Request sent to {node[0]}.{node[1]}')
-    os.system(f"notify-send 'Requested {node[0]}.{node[1]} to {command}.'")
-
-
-
+    os.system(f"notify-send -u low 'Requested {node[0]}.{node[1]} to {command}.'")
 
 
 if __name__ == '__main__':
