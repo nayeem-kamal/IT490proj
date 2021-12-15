@@ -112,7 +112,7 @@ def use_scp(full_pkg_path):
 
     ssh = SSHClient()
     ssh.load_system_host_keys()
-    ssh.connect(hostname=deployment_ip, username=deployment_user, password=deployment_pw, port=22)
+    ssh.connect(hostname=test_ip, username=deployment_user, password=deployment_pw, port=22)
     scp = SCPClient(ssh.get_transport())
 
     scp.put(full_pkg_path, deployment_remote_path)
@@ -485,14 +485,14 @@ def rollback():
     else:
         pkgname = dir_content[0]
 
-    response = ''
-    valid_answers = ['yes', 'no']
-    while response not in valid_answers:
-        print('Are you sure:')
-        response = input(f'Rollback package {pkgname} (yes/no)? ')
+#    response = ''
+#    valid_answers = ['yes', 'no']
+#    while response not in valid_answers:
+#        print('Are you sure:')
+#        response = input(f'Rollback package {pkgname} (yes/no)? ')
 
-    if response == 'no':
-        return
+#    if response == 'no':
+#        return
 
     full_pkg_path = config_yaml['outstanding_path']+pkgname
 
@@ -802,10 +802,22 @@ def request(command, node):
     QA = False
     PROD = False
 
+    # validate input
     if command not in commands or node not in nodes:
         sys.exit('incorrect ser.')
 
+    # verify request
+    response = ''
+    valid_answers = ['yes', 'no']
+    while response not in valid_answers:
+        print('Are you sure:')
+        response = input(f'{command} on {node} (yes/no)? ')
+
+    if response == 'no':
+        sys.exit('Request canceled.')
+
     node = node.split('.')
+
     # determine node network
     if 'qa' in node[0]:
         QA = True

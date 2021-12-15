@@ -49,7 +49,7 @@ def scrub_signal():
 
 def install_package(filename):
     '''auto call the pack tool to install'''
-    emit_log('Remote Install Signal Detected.')
+    emit_log('Remote Install Signal Detected')
     os.system('pack install')
 
     # rm loose signal file
@@ -58,7 +58,7 @@ def install_package(filename):
 
 def rollback_package(filename):
     '''auto call the pack tool to rollback'''
-    emit_log('Remote Rollback Signal Detected.')
+    emit_log('Remote Rollback Signal Detected')
     os.system('pack rollback')
 
     # rm loose signal file
@@ -67,7 +67,7 @@ def rollback_package(filename):
 
 def approve_package(filename):
     '''auto call the pack tool to approve'''
-    emit_log('Remote Approve Signal Detected.')
+    emit_log('Remote Approve Signal Detected')
     os.system('pack approve')
 
     # rm loose signal file
