@@ -466,6 +466,22 @@ def install():
     print('Package installed successfully. Check <pack log> for details.')
 
 
+def connect_err_cleanup():
+    '''rm all files in tmp in even of conn err on rollback'''
+
+    # rm files in tmp/rollback dir before deleting
+    rollback_file_list = glob.glob(config_yaml['tmp_path']+'rollback/*')
+    for file in rollback_file_list:
+        os.remove(file)
+    # rm rollback dir in tmp before scrubbing tmp
+    os.rmdir(config_yaml['tmp_path']+'rollback/')
+
+    # removes all loose files in tmp dir (from the recent .tar.gz creation)
+    tmp_file_list = glob.glob(config_yaml['tmp_path']+"*")
+    for file in tmp_file_list:
+        os.remove(file)
+
+
 def rollback():
     '''
     Rollback currently installed package.
@@ -515,6 +531,7 @@ def rollback():
         print('Rollback message to server successful.')
         print('Continuing with rollback..')
     else:
+        connect_err_cleanup()
         sys.exit('Only rollback when connected to deployment server!')
 
     updated_files = pkg_yaml['rollback']['updated_files']
