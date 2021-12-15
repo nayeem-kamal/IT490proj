@@ -24,6 +24,7 @@ new_pkg_type = '.tar.gz'
 rollback_ext = '.rb.'
 approved_ext = '.appd.'
 prodinstall_ext = '.prod.'
+qa_install_ext = '.success.'
 log_path = '/home/deploy/packages/pack.log'
 
 # establishing on deck paths for QA and PROD
@@ -137,6 +138,18 @@ def prod_install(filename):
     os.remove(dir_to_scan+filename)
 
 
+def confirm_qa_install(filename):
+    '''
+    confirms qa installs from remote
+    purely cosmetic, confirms in log
+    and as notification
+    '''
+
+    emit_log('QA Install Detected', filename)
+    os.system("notify-send 'QA Install Successful'")
+    os.remove(dir_to_scan+filename)
+
+
 def check_deck():
     '''checks deck for waiting packages, attempts to send'''
 
@@ -199,6 +212,8 @@ while True:
                 rollback_package(filename)
             elif prodinstall_ext in filename:
                 prod_install(filename)
+            elif qa_install_ext in filename:
+                confirm_qa_install(filename)
             else:
                 if filename.endswith(new_pkg_type):
                     new_package(filename)

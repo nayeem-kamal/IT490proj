@@ -463,12 +463,31 @@ def install():
 
     emit_log(pkg_yaml, install=True)
 
+    # added on after the fact, to send install confirmation
+    # back to deployment server after remote install signal
+    # if not on prod.
+
+    if not ON_PROD:
+        # attempt scp transfer to confirm succesful QA install
+        confirm = {'install': 'successful'}
+        with open(config_yaml['tmp_path']+'install.success.yaml', 'w') as file:
+            yaml.dump(confirm, file, sort_keys=False)
+
+        scp_success = False
+        try:
+            scp_success = use_scp(config_yaml['tmp_path']+'install.success.yaml')
+        except Exception as e:
+            print(e)
+            print('Cant send successful install message back to deploy server.')
+            print('Let deployment know this install was successful.')
+
     print('Package installed successfully. Check <pack log> for details.')
 
 
 def connect_err_cleanup():
     '''rm all files in tmp in even of conn err on rollback'''
 
+    config_yaml = get_config()
     # rm files in tmp/rollback dir before deleting
     rollback_file_list = glob.glob(config_yaml['tmp_path']+'rollback/*')
     for file in rollback_file_list:
