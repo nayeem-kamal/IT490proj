@@ -1,3 +1,4 @@
+
 from logging import fatal
 import mysql.connector
 import json
@@ -9,6 +10,7 @@ class DBTransactor:
     def __init__(self) -> None:
         self.config = {}
         self.config = {
+
     "hostname" : "localhost",
     "database" : "kommando",
     "user" : "nhk6",
@@ -42,7 +44,6 @@ class DBTransactor:
         # log.log("mysql"query+"   "+str(params))
         cursor.execute(query, params)
 
-        print(cursor.statement)
         conn.commit()
         print(conn)
         if conn.is_connected():
@@ -51,11 +52,12 @@ class DBTransactor:
 
     def execute_sql_with_open_connection(self, cursor, query, params):
         cursor.execute(query, params)
-        print(cursor.statement)
+
 
     # insert into user table
     def insert_user(self, conn, uname, password, first, last):
         mySql_insert_query = """INSERT INTO users
+
                 (email,
                 password,
                 firstName,
@@ -94,6 +96,7 @@ class DBTransactor:
 
     # insert data into account
     def insert_account(self, conn, un, balance, account_type):
+
         mySql_insert_query = """INSERT INTO Accounts (username,balance,account_type)
                                     VALUES (%s,%s,%s) """
         self.execute_sql(conn, mySql_insert_query,
@@ -148,7 +151,6 @@ class DBTransactor:
             params = (un, pwd)
             self.execute_sql_with_open_connection(cursor, query, params)
             columns = cursor.fetchone()
-            print(cursor.statement)
 
             self.close_cursor(cursor)
             self.close_connection(conn)
@@ -163,12 +165,14 @@ class DBTransactor:
         try:
             conn = self.get_connection()
             cursor = self.get_cursor(conn)
+
             query = """select id, username, balance, account_type from Accounts where username = %s"""
             params = (un,)
             self.execute_sql_with_open_connection(cursor, query, params)
             columns = cursor.fetchall()
             self.close_cursor(cursor)
             self.close_connection(conn)
+
             ret={}
             for i in columns:
                 ret.update({i[3]:i})
@@ -179,6 +183,7 @@ class DBTransactor:
             return json.dumps({"accounts": "False"})
 
     # get trade history
+
     def tradeHistory(self,un):
         try:
             conn = self.get_connection()
@@ -191,6 +196,7 @@ class DBTransactor:
             self.close_cursor(cursor)
             self.close_connection(conn)
             tradeHistory = []
+
             
             return columns
         except mysql.connector.Error as error:
@@ -200,6 +206,7 @@ class DBTransactor:
             return False
 
     # get all transactions
+
     def get_all_transactions(self,un):
         try:
             conn = self.get_connection()
@@ -222,6 +229,7 @@ class DBTransactor:
 
     # update balance where username = this and account type is this
     # update account
+
     def update_account(self,source, destination, tradeAmt):
         try:
             conn = self.get_connection()

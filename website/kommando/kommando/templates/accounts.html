@@ -2,7 +2,8 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <title>Login form</title>
+    <title>Accounts</title>
+
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -48,17 +49,25 @@
             </div>
             <div class="col-9 main-content">
  
-            <table>
-                
-                <tr>
-                    <th>Cash Balance</th>
-                    <th>Bitcoin Balance</th>
-                    <th>Ethereum Balance</th>
-                </tr>
-                    <td>$1000</td>
-                    <td>$1000</td>
-                    <td>$1000</td>
-            </table>
+              <table class="table table-dark">
+                <thead>
+                  <tr>
+                    
+                    <th scope="col">Cash Balance</th>
+                    <th scope="col">Bitcoin Balance</th>
+                    <th scope="col">Ethereum Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                  </tr>
+                </tbody>
+              </table>
+            {{getAcct}}
 
             </div>
         </div><!--row-->

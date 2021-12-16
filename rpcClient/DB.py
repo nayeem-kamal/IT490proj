@@ -17,6 +17,7 @@ class DB:
         return self.rpc.call(json.dumps({"function":"login","email":str(email) , "password":str(key)}))
     def getAccounts(self,email):
         return self.rpc.call(json.dumps({"function":"get_accounts","email":str(email)}))
+
     def trade(self,source,dest,amt):
         return self.rpc.call(json.dumps({"function":"trade","src":str(source),"dst":str(dest),"amt":str(amt)}))
     def tradeHistory(self,email):

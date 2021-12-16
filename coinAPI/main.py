@@ -194,6 +194,7 @@ def getETHDailyHistoricalTwelveMonth():
 def getLedger():
     url = "https://min-api.cryptocompare.com/data/blockchain/latest?fsym=ETH&api_key=f3bfa32806d8a4514f7264b0f1effe2bdd13067f8cafd597de0d6567cd4a2393"
 
+
     payload={}
     headers = {}
 

@@ -6,6 +6,9 @@ from . import API
 from . import DB
 from .loginForm import loginForm
 import json
+import ast
+
+
 def contact(request):
     fname = []
     lname = []
@@ -13,6 +16,8 @@ def contact(request):
     passwd = []
 
     if request.method == 'POST':
+        print("contactTestPost")
+
         form = ContactForm(request.POST)
 
         if form.is_valid():
@@ -27,6 +32,8 @@ def contact(request):
         form = ContactForm()
         return render(request, 'testRegistration.html', {'form': form, 'fname': fname, 'lname': lname, 'email': email, 'passwd': passwd})
     else:
+        print("contactTestGet")
+
         form = ContactForm(request.GET)
 
         if form.is_valid():
@@ -68,35 +75,43 @@ def apiTest(request):
 
 def login(request):
 
-
+    
     email = []
     passwd = []
+    login = DB.DB()
+    print("test")
 
     if request.method == 'POST':
         form = loginForm(request.POST)
-
+        print("testpost")
+        print(request.POST)
         if form.is_valid():
-            login = DB.DB()
-
+            
+            
             email = form.cleaned_data['email']
             passwd = form.cleaned_data['password']
-            login.login(email,passwd)
+            #login.login(email,passwd)
+            rawLogin = json.dumps(login.login(email,passwd).decode("UTF-8"))
+            print(email, passwd,"hi")
 
-            print(email, passwd,)
         form = loginForm()
         return render(request,'login.html',{'form':form})
     else:
         form = loginForm(request.GET)
-
+        print("testget")
         if form.is_valid():
-            login = DB.DB()
+            print("testif")
+            
 
             email = form.cleaned_data['email']
             passwd = form.cleaned_data['password']
             login.login(email,passwd)
 
             print(email, passwd,)
-        form = loginForm()
+            form = loginForm()
+        else:
+            print("this returned false")
+
         return render(request,'login.html',{'form':form})  
 
 def trade(request):
@@ -104,5 +119,25 @@ def trade(request):
     return render(request,'trade.html')
 
 def accounts(request):
+    email = "newuser@gmail.com"
+    #dbAcc = DB.DB()
+    #getAcct = dbAcc.getAccounts(email)
+    getAcct = b"{'BTC': (31, 'newuser@gmail.com', 0.0, 'BTC'), 'ETH': (32, 'newuser@gmail.com', 0.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')}" 
+    print(getAcct)
+    return render(request,'accounts.html', {'getAcct':getAcct})
 
-    return render(request,'accounts.html')
+def history(request):
+    email = "newuser@gmail.com"
+    getHist = DB.DB()
+    
+    #histRaw = b"{'BTC': (31, 'newuser@gmail.com', 0.0, 'BTC'), 'ETH': (32, 'newuser@gmail.com', 0.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')}"
+    histRaw = ast.literal_eval((json.loads(json.dumps(getHist.tradeHistory(email).decode("UTF-8")))))
+    
+    hkeys = ("TradeID", "User", "Balance", "Type")
+    hlist = []
+    print(type(histRaw))
+    for values in histRaw.values():
+        hlist.append(dict(zip(hkeys,values)))
+        
+    #getHist = histRaw
+    return render(request,'history.html', {'getHist':hlist})
