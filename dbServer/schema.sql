@@ -34,3 +34,16 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `Accounts` (
+  `id` int auto_increment,
+  `username` varchar(255) DEFAULT NULL,
+  `balance` float DEFAULT '0',
+  `account_type` varchar(255) DEFAULT 'Bitcoin',
+  `created` datetime DEFAULT CURRENT_TIMESTAMP,
+  `modified` datetime DEFAULT NULL,
+  `closed` tinyint DEFAULT '0',
+  `freeze` tinyint DEFAULT '0',
+  PRIMARY KEY (`id`)
+);
+

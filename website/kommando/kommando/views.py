@@ -8,6 +8,7 @@ from .loginForm import loginForm
 import json
 import ast
 
+
 def contact(request):
     fname = []
     lname = []
@@ -16,6 +17,7 @@ def contact(request):
 
     if request.method == 'POST':
         print("contactTestPost")
+
         form = ContactForm(request.POST)
 
         if form.is_valid():
@@ -31,6 +33,7 @@ def contact(request):
         return render(request, 'testRegistration.html', {'form': form, 'fname': fname, 'lname': lname, 'email': email, 'passwd': passwd})
     else:
         print("contactTestGet")
+
         form = ContactForm(request.GET)
 
         if form.is_valid():
@@ -90,6 +93,7 @@ def login(request):
             #login.login(email,passwd)
             rawLogin = json.dumps(login.login(email,passwd).decode("UTF-8"))
             print(email, passwd,"hi")
+
         form = loginForm()
         return render(request,'login.html',{'form':form})
     else:
@@ -107,6 +111,7 @@ def login(request):
             form = loginForm()
         else:
             print("this returned false")
+
         return render(request,'login.html',{'form':form})  
 
 def trade(request):
