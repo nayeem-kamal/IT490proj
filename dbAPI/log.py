@@ -33,7 +33,3 @@ def log(un,message1):
         if(connection.is_open):
             connection.close()
         return False
-
-log('logreader','test')
-log('logreader','test')
-log('logreader','test')

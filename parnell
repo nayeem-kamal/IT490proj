@@ -1,0 +1,3 @@
+#!/bin/bash
+sudo python3 NetworkLogger/receive.py &
+sudo python3 website/kommando/manage.py runserver

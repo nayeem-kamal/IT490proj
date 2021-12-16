@@ -7,14 +7,14 @@ un='logreader'
 credentials = pika.PlainCredentials(un,un )
 parameters = pika.ConnectionParameters('192.168.194.195',
                                        5672,
-                                       'it490',
+                                       'midterm',
                                        credentials)
 connection = pika.BlockingConnection(parameters)
 channel = connection.channel()
 
-channel.exchange_declare(exchange='NetworkLog', exchange_type='fanout')
+channel.exchange_declare(exchange='NetworkLog', exchange_type='fanout',durable=True)
 
-result = channel.queue_declare(queue='NetworkLog', exclusive=False)
+result = channel.queue_declare(queue='', exclusive=False,auto_delete=True,durable=True)
 queue_name = result.method.queue
 
 channel.queue_bind(exchange='NetworkLog', queue=queue_name)
