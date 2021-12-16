@@ -20,3 +20,5 @@ class API:
         return self.rpc.call(json.dumps({"function":"getBTCDailyHistoricalYears"}))
     def getThreeYearsETH(self):
         return self.rpc.call(json.dumps({"function":"getETHDailyHistoricalYears"}))    
+    def getLedger(self):
+        return self.rpc.call(json.dumps({"function":"getLedger"}))    
