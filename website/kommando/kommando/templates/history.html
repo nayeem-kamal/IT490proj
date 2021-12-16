@@ -47,7 +47,7 @@
                   </ul>
             </div>
             <div class="col-9 main-content" id="main-content">
- 
+                
                 <table class="table">
                     <thead>
                       <tr>
@@ -58,10 +58,17 @@
                       </tr>
                     </thead>
                     <tbody id="tabBody">
-                      {{getHist}}
-                      
+                      {% for item in getHist %}
+                      <tr>
+                        <td>{{item.TradeID}}</td>
+                        <td>{{item.User}}</td>
+                        <td>{{item.Balance}}</td>
+                        <td>{{item.Type}}</td>
+                      </tr>
+                      {% endfor %}
                     </tbody>
                   </table>
+                  <!--
                   <script type="text/JavaScript" id = "hist">
                     
                   var mydata = "{{getHist}}";
@@ -81,7 +88,7 @@
                       }
                   </script>
             
-
+                -->
             </div>
         </div><!--row-->
     </div> <!-- container-fluid-->
