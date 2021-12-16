@@ -6,6 +6,8 @@ from . import API
 from . import DB
 from .loginForm import loginForm
 import json
+import ast
+
 def contact(request):
     fname = []
     lname = []
@@ -82,12 +84,12 @@ def login(request):
         print(request.POST)
         if form.is_valid():
             
-
+            
             email = form.cleaned_data['email']
             passwd = form.cleaned_data['password']
-            login.login(email,passwd)
-
-            print(email, passwd,)
+            #login.login(email,passwd)
+            rawLogin = json.dumps(login.login(email,passwd).decode("UTF-8"))
+            print(email, passwd,"hi")
         form = loginForm()
         return render(request,'login.html',{'form':form})
     else:
@@ -112,12 +114,25 @@ def trade(request):
     return render(request,'trade.html')
 
 def accounts(request):
-    email = "testuser7@gmail.com"
-    getAcct = DB.DB.getAccounts(email)
+    email = "newuser@gmail.com"
+    #dbAcc = DB.DB()
+    #getAcct = dbAcc.getAccounts(email)
+    getAcct = b"{'BTC': (31, 'newuser@gmail.com', 0.0, 'BTC'), 'ETH': (32, 'newuser@gmail.com', 0.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')}" 
     print(getAcct)
     return render(request,'accounts.html', {'getAcct':getAcct})
 
 def history(request):
-    email = "testuser7@gmail.com"
-    getHist = DB.DB.tradeHistory(email,email)
-    return render(request,'history.html', {'getHist':getHist})
+    email = "newuser@gmail.com"
+    getHist = DB.DB()
+    
+    #histRaw = b"{'BTC': (31, 'newuser@gmail.com', 0.0, 'BTC'), 'ETH': (32, 'newuser@gmail.com', 0.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')}"
+    histRaw = ast.literal_eval((json.loads(json.dumps(getHist.tradeHistory(email).decode("UTF-8")))))
+    
+    hkeys = ("TradeID", "User", "Balance", "Type")
+    hlist = []
+    print(type(histRaw))
+    for values in histRaw.values():
+        hlist.append(dict(zip(hkeys,values)))
+        
+    #getHist = histRaw
+    return render(request,'history.html', {'getHist':hlist})
