@@ -77,8 +77,8 @@ def new_package(filename):
 def approve_package(filename):
     '''sets the given package to approved, then sends package to prod'''
 
-    emit_log('Appd Packaged Detected.', filename)
-    os.system("notify-send 'Approved Package Detected.'")
+    emit_log('Appd Packaged Successful.', filename)
+    os.system("notify-send 'Approved Package Successful.'")
 
     # if setting pkg approval successful,
     # send next package to given production node
@@ -102,13 +102,13 @@ def rollback_package(filename):
     removes any waiting new packages for that node
     '''
 
-    emit_log('Rollback Package Detected', filename)
+    emit_log('Rollback Package Successful', filename)
 
     with open(dir_to_scan+filename, 'r') as file:
         pkg_yaml = yaml.safe_load(file)
 
     node = pkg_yaml['sourcenode']
-    os.system(f"notify-send -u critical 'Rollback Detected for {node}.'")
+    os.system(f"notify-send -u critical 'Rollback {node} Successful.'")
 
     db.rollback_package(pkg_yaml)
     os.remove(dir_to_scan+filename)
@@ -123,13 +123,13 @@ def prod_install(filename):
     registed when production successfully installs package
     updates pkgstatus to production
     '''
-    emit_log('Production Install Detected', filename)
+    emit_log('Production Install Successful', filename)
 
     with open(dir_to_scan+filename, 'r') as file:
         pkg_yaml = yaml.safe_load(file)
 
     node = pkg_yaml['sourcenode']
-    os.system(f"notify-send 'PROD Install for {node}.'")
+    os.system(f"notify-send 'PROD Install {node} Successful.'")
 
     # set pkgstatus to production for package
     db.prod_install(pkg_yaml)
@@ -145,7 +145,7 @@ def confirm_qa_install(filename):
     and as notification
     '''
 
-    emit_log('QA Install Detected', filename)
+    emit_log('QA Install Successful', filename)
     os.system("notify-send 'QA Install Successful'")
     os.remove(dir_to_scan+filename)
 

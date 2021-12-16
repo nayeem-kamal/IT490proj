@@ -112,7 +112,7 @@ def use_scp(full_pkg_path):
 
     ssh = SSHClient()
     ssh.load_system_host_keys()
-    ssh.connect(hostname=test_ip, username=deployment_user, password=deployment_pw, port=22)
+    ssh.connect(hostname=deployment_ip, username=deployment_user, password=deployment_pw, port=22)
     scp = SCPClient(ssh.get_transport())
 
     scp.put(full_pkg_path, deployment_remote_path)
