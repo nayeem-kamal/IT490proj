@@ -10,4 +10,5 @@ urlpatterns = [
     path('testRegistration.html',views.contact),
     path('history.html' ,views.history)
 
+
 ]

@@ -1,3 +1,5 @@
+
+from logging import fatal
 import mysql.connector
 import json
 import log
@@ -8,7 +10,8 @@ class DBTransactor:
     def __init__(self) -> None:
         self.config = {}
         self.config = {
-    "hostname" : "192.168.194.195",
+
+    "hostname" : "localhost",
     "database" : "kommando",
     "user" : "nhk6",
     "password" : "nhk6"
@@ -40,6 +43,7 @@ class DBTransactor:
         cursor = self.get_cursor(conn)
         # log.log("mysql"query+"   "+str(params))
         cursor.execute(query, params)
+
         conn.commit()
         print(conn)
         if conn.is_connected():
@@ -49,15 +53,17 @@ class DBTransactor:
     def execute_sql_with_open_connection(self, cursor, query, params):
         cursor.execute(query, params)
 
+
     # insert into user table
     def insert_user(self, conn, uname, password, first, last):
         mySql_insert_query = """INSERT INTO users
-(email,
-password,
-firstName,
-lastName)
-VALUES(
-%s,%s,%s,%s); """
+
+                (email,
+                password,
+                firstName,
+                lastName)
+                VALUES(
+                %s,%s,%s,%s); """
         self.execute_sql(conn, mySql_insert_query,
                          (uname, password, first, last))
 
@@ -90,7 +96,8 @@ VALUES(
 
     # insert data into account
     def insert_account(self, conn, un, balance, account_type):
-        mySql_insert_query = """INSERT INTO Accounts (email,balance,account_type)
+
+        mySql_insert_query = """INSERT INTO Accounts (username,balance,account_type)
                                     VALUES (%s,%s,%s) """
         self.execute_sql(conn, mySql_insert_query,
                          (un, balance, account_type))
@@ -144,6 +151,7 @@ VALUES(
             params = (un, pwd)
             self.execute_sql_with_open_connection(cursor, query, params)
             columns = cursor.fetchone()
+
             self.close_cursor(cursor)
             self.close_connection(conn)
             if un == columns[0]:
@@ -157,34 +165,40 @@ VALUES(
         try:
             conn = self.get_connection()
             cursor = self.get_cursor(conn)
-            query = """select * from Accounts where username = %s"""
+
+            query = """select id, username, balance, account_type from Accounts where username = %s"""
             params = (un,)
             self.execute_sql_with_open_connection(cursor, query, params)
             columns = cursor.fetchall()
             self.close_cursor(cursor)
             self.close_connection(conn)
+
+            ret={}
+            for i in columns:
+                ret.update({i[3]:i})
         
-            return json.dumps({"accounts": str(columns)})
+            return ret
         except mysql.connector.Error as error:
             print("Failed to get from MySQL table")
             return json.dumps({"accounts": "False"})
 
     # get trade history
-    def tradeHistory(self):
+
+    def tradeHistory(self,un):
         try:
             conn = self.get_connection()
             cursor = self.get_cursor(conn)
-            query = """select * FROM transactions where source in (select id from"""
+            query = """select * FROM transactions where source in (select id from Accounts where username=%s)"""
 
-            params = ()
-            self.execute_sql(cursor, query, params)
+            params = (un,)
+            self.execute_sql_with_open_connection(cursor, query, params)
             columns = cursor.fetchall()
             self.close_cursor(cursor)
             self.close_connection(conn)
             tradeHistory = []
-            for column in columns:
-                tradeHistory.append(tradeHistory[0])
-            return tradeHistory
+
+            
+            return columns
         except mysql.connector.Error as error:
             self.close_cursor(cursor)
             self.close_connection(conn)
@@ -192,11 +206,12 @@ VALUES(
             return False
 
     # get all transactions
-    def get_all_transactions(self):
+
+    def get_all_transactions(self,un):
         try:
             conn = self.get_connection()
             cursor = self.get_cursor(conn)
-            query = """select name from transactions """
+            query = """select * from transactions where source in (select id from  ) """
             params = ()
             self.execute_sql_with_open_connection(cursor, query, params)
             columns = cursor.fetchall()
@@ -214,60 +229,48 @@ VALUES(
 
     # update balance where username = this and account type is this
     # update account
-    def update_account(self, un, account_type, balance):
+
+    def update_account(self,source, destination, tradeAmt):
         try:
             conn = self.get_connection()
-            cursor = self.get_cursor(conn)
-            query = """"UPDATE balance where username = name AND account_type = cash"""
-            params = (un, account_type, balance)
-            self.execute_sql_with_open_connection(cursor, query, params)
-            columns = cursor.fetchall()
-            self.close_cursor(cursor)
+            query = """UPDATE Accounts set balance = balance + %s where id=%s"""
+            params = (tradeAmt,source)
+            self.execute_sql(conn, query, params)
+            query = """UPDATE `Accounts` set `balance` = balance - %s where `id`=%s"""
+            params = (tradeAmt,destination)
+            conn = self.get_connection()
+
+            self.execute_sql(conn, query, params)
             self.close_connection(conn)
-            return json.loads({"accounts": balance})
+            return True
         except mysql.connector.Error as error:
-            self.close_cursor(cursor)
             self.close_connection(conn)
-            print("Failed to select from MySQL table")
-            return json.loads({"accounts":"False"})
+            print("Failed to insert from MySQL table accounts")
+            return False
 
 
 # update accounts when trade is completed
-    def update_trade(self, account_type, balance):
+    
+
+    def trade(self,source,destination,tradeamt):
         try:
             conn = self.get_connection()
-            cursor = self.get_cursor(conn)
-            query = """UPDATE balance and account_type FROM"""
-            params = (account_type, balance)
-            self.execute_sql_with_open_connection(cursor, query, params)
-            columns = cursor.fetchmany(2)
-            self.close_cursor(cursor)
+            query = """INSERT into transactions (
+                    `source`,
+                    `destination`,
+                    `totalCost`
+                    )
+                    VALUES(%s,%s,%s)
+                    """
+            params = (source,destination,tradeamt)
+            self.execute_sql(conn, query, params)
             self.close_connection(conn)
-            return json.loads({"accounts":balance})
+            print(self.update_account(source,destination,tradeamt))
+            return True
         except mysql.connector.Error as error:
-            self.close_cursor(cursor)
             self.close_connection(conn)
-            print("Failed to select from MySQL table ")
-            return json.loads({"accounts":"False"})
-
-#add transaction to table
-def record_transaction(self, recentTrades):
-    try:
-        conn = self.get_connection()
-        cursor = self.get_cursor(conn)
-        query = """INSERT into transactions (recentTrades)"""
-        params = (recentTrades)
-        self.execute_sql(cursor, query, params)
-        columns = cursor.fetchone()
-        self.close(cursor)
-        self.close_connection(conn)
-        return json.loads({"transactions":recentTrades})
-    except mysql.connector.Error as error:
-        self.close_cursor(cursor)
-        self.close_connection(conn)
-        print("Failed to select from MySQL table ")
-        return json.loads({"accounts":"False"})
-
+            print("Failed to insert from MySQL table ")
+            return False
 
 # db=DBTransactor()
 # db.get_User("jal97", "toor")

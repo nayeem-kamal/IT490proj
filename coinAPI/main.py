@@ -3,6 +3,7 @@ import pika
 import logging
 import json
 import threading
+import requests
 from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import json
@@ -190,6 +191,16 @@ def getETHDailyHistoricalTwelveMonth():
 
     
     return ret
+def getLedger():
+    url = "https://min-api.cryptocompare.com/data/blockchain/latest?fsym=ETH&api_key=f3bfa32806d8a4514f7264b0f1effe2bdd13067f8cafd597de0d6567cd4a2393"
+
+
+    payload={}
+    headers = {}
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+
+    return (response.text)
 
 def on_request(ch, method, props, body):
     n = json.loads(body)
@@ -208,6 +219,8 @@ def on_request(ch, method, props, body):
         response = getETHDailyHistoricalYears()
     elif(n['function']=="getETHDailyHistoricalTwelveMonth"):
         response = getETHDailyHistoricalTwelveMonth()
+    elif(n["function"]=="getLedger"):
+        response=getLedger()
     else:    
         response="not parsed"
         #log.log("dmz","Invalid Function Request ")

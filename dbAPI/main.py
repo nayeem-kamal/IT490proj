@@ -36,6 +36,10 @@ def get_accounts(email):
     ret = db.get_accounts(email)
     return ret
 
+def trade(s,d,a):
+    global db
+    ret = db.trade(s,d,a)
+    return ret
 
 def on_request(ch, method, props, body):
     # print(body)
@@ -48,7 +52,9 @@ def on_request(ch, method, props, body):
         response = login(n["email"],str(n["password"]))
     elif(n['function']=="get_accounts"):
         response = get_accounts(str(n["email"]))
-    
+
+    elif(n['function']=="trade"):
+        response =trade(n["src"],n["dst"],n["amt"])
     else:    
         response="not parsed"
 

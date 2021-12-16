@@ -34,6 +34,3 @@ def log(un,message1):
             connection.close()
         return False
 
-log('logreader','test')
-log('logreader','test')
-log('logreader','test')
