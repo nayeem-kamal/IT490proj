@@ -39,11 +39,16 @@ def trade(s,d,a):
     global db
     ret = db.trade(s,d,a)
     return ret
+def history(un):
+    global db
+    ret = db.tradeHistory(un)
+    return ret
 
 def on_request(ch, method, props, body):
     # print(body)
     n = json.loads(body)
     print(str(n)+" "+props.reply_to)
+    print(n)
 
     if(n['function']=="register"):
         response = register(n["firstName"],n["lastName"],n["email"],n["password"])
@@ -53,6 +58,8 @@ def on_request(ch, method, props, body):
         response = get_accounts(str(n["email"]))
     elif(n['function']=="trade"):
         response =trade(n["src"],n["dst"],n["amt"])
+    elif(n['function']=="history"):
+        response = history(n["email"])
     else:    
         response="not parsed"
 
