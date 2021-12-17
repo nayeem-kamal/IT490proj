@@ -1,0 +1,179 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Ledger</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+ 
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="./styles.css"
+   
+  </head>
+  <body>
+    
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+              <a class="navbar-brand" href="#">CryptoTrade
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav">
+                  <a class="nav-link active" aria-current="page" href="login.html">Home</a>
+                  <a class="nav-link" href="accounts.html">Accounts</a>
+                  <a class="nav-link" href="trade.html">Make Trades</a>
+                </div>
+              </div>
+            </div>
+          </nav>
+    </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-3 sidebar">
+                
+                <ul class="list-group">
+                    <li class="list-group-item list-group-item-dark"onclick="window.location.href = 'charts.html'" >Charts</li>
+                    <li class="list-group-item list-group-item-dark">Item 2</li>
+                    <li class="list-group-item list-group-item-dark">Item 3</li>
+                    <li class="list-group-item list-group-item-dark">Item 4</li>
+                    <li class="list-group-item list-group-item-dark">Item 5</li>
+                    
+                    
+                    
+                  </ul>
+            </div>
+            <div class="col-9 main-content" id="main-content">
+                
+                <table class="table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Info</th>
+                        <th scope="col">Value</th>
+                       
+                      </tr>
+                    </thead>
+                    <tbody id="tabBody">
+                        
+                      {% for key, value in ledgeData.items %}
+                      <tr>
+                        <td>{{key}}</td>
+                        <td>{{value}}</td>
+                        
+                      </tr>
+                      {% endfor %}
+                    
+                   
+                    </tbody>
+                  </table>
+
+                  
+                  <!--Legend for ledger table above-->
+                  <table class="table">
+                    <thead class="thead-light">
+                      <tr>
+                        <th scope="col">Response</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Unit of Measure</th>
+                        
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Time</td>
+                        <td>Unix Timestamp</td>
+                        <td>Seconds</td>
+                      </tr>
+                      <tr>
+                        <td>Block Height</td>
+                        <td>The max block number for the given day</td>
+                        <td>Blocks</td>
+                      </tr>
+                      <tr>
+                        <td>Transaction Count</td>
+                        <td>Count of valid transactions for a given day</td>
+                        <td>Transactions</td>
+                      </tr>
+                      <tr>
+                        <td>Transaction count all time</td>
+                        <td>Count of all trasactions ever made</td>
+                        <td>Transactions</td>
+                      </tr>
+                      <tr>
+                        <td>Large Transaction Count</td>
+                        <td>Count of transactions over $100k USD per day</td>
+                        <td>Transactions</td>
+                      </tr>
+                      <tr>
+                        <td>Average Transaction Value</td>
+                        <td>Average transaction value denominated in the native units of the digital assets per day</td>
+                        <td>Native Units</td>
+                      </tr>
+                      <tr>
+                        <td>Zero Balance Addresses All Time</td>
+                        <td>Sum of all zero balance addresses</td>
+                        <td>Addresses</td>
+                      </tr>
+                      <tr>
+                        <td>Unique Addresses All Time</td>
+                        <td>Sum of all addresses that executed atleast one transaction</td>
+                        <td>Addresses</td>
+                      </tr>
+                      <tr>
+                        <td>New Addresses</td>
+                        <td>Sum of addresses that were created that day</td>
+                        <td>Addresses</td>
+                      </tr>
+                      <tr>
+                        <td>Active Addresses</td>
+                        <td>The sum of addresses that were created that day</td>
+                        <td>Addresses</td>
+                      </tr>
+                      <tr>
+                        <td>Hashrate</td>
+                        <td>Average difficulty / average time between blocks for the day / 10 ^12</td>
+                        <td>TH/s</td>
+                      </tr>
+                      <tr>
+                        <td>Difficulty</td>
+                        <td>The mean difficulty of finding a hash that meets the protocol-designated requirement for that day</td>
+                        <td>N/A</td>
+                      </tr>
+                      <tr>
+                        <td>Current Supply</td>
+                        <td>Sum of all native units issued on the ledger</td>
+                        <td>Native Units</td>
+                      </tr>
+                      <tr>
+                        <td>Block Time</td>
+                        <td>Average time in seconds it took for each block to be created that day</td>
+                        <td>Seconds</td>
+                      </tr>
+                      <tr>
+                        <td>Block Size</td>
+                        <td>The average size in bytes of all blocks created that day</td>
+                        <td>Bytes</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  
+            </div>
+        </div><!--row-->
+    </div> <!-- container-fluid-->
+    <!-- Optional JavaScript; choose one of the two! -->
+ 
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+ 
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+    -->
+  </body>
+</html>
+
+

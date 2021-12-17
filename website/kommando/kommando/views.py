@@ -7,8 +7,7 @@ from . import DB
 from .loginForm import loginForm
 import json
 import ast
-
-
+import datetime
 def contact(request):
     fname = []
     lname = []
@@ -17,7 +16,6 @@ def contact(request):
 
     if request.method == 'POST':
         print("contactTestPost")
-
         form = ContactForm(request.POST)
 
         if form.is_valid():
@@ -33,7 +31,6 @@ def contact(request):
         return render(request, 'testRegistration.html', {'form': form, 'fname': fname, 'lname': lname, 'email': email, 'passwd': passwd})
     else:
         print("contactTestGet")
-
         form = ContactForm(request.GET)
 
         if form.is_valid():
@@ -93,7 +90,6 @@ def login(request):
             #login.login(email,passwd)
             rawLogin = json.dumps(login.login(email,passwd).decode("UTF-8"))
             print(email, passwd,"hi")
-
         form = loginForm()
         return render(request,'login.html',{'form':form})
     else:
@@ -111,7 +107,6 @@ def login(request):
             form = loginForm()
         else:
             print("this returned false")
-
         return render(request,'login.html',{'form':form})  
 
 def trade(request):
@@ -127,17 +122,35 @@ def accounts(request):
     return render(request,'accounts.html', {'getAcct':getAcct})
 
 def history(request):
-    email = "newuser@gmail.com"
+    email = "newuser1@gmail.com"
     getHist = DB.DB()
     
-    #histRaw = b"{'BTC': (31, 'newuser@gmail.com', 0.0, 'BTC'), 'ETH': (32, 'newuser@gmail.com', 0.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')}"
-    histRaw = ast.literal_eval((json.loads(json.dumps(getHist.tradeHistory(email).decode("UTF-8")))))
+    #histRaw = b"{'BTC': (31, 'newuser@gmail.com', 0.0, 'BTC'),
+    #  'ETH': (32, 'newuser@gmail.com', 0.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')}"
+    histRaw = eval((json.loads(json.dumps(getHist.tradeHistory(email).decode("UTF-8")))))
+    #histRaw = json.dumps(getHist.tradeHistory(email).decode("UTF-8"))
     
-    hkeys = ("TradeID", "User", "Balance", "Type")
+    
+    #acc = ast.literal_eval(json.loads(json.dumps(getHist.getAccounts(email).decode("UTF-8"))))
+    acc = {'BTC': (31, 'newuser@gmail.com', 100.0, 'BTC'), 'ETH': (32, 'newuser@gmail.com', -100.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')} 
+    hkeys = ("tID", "src", "dst", "amt","created")
     hlist = []
-    print(type(histRaw))
-    for values in histRaw.values():
-        hlist.append(dict(zip(hkeys,values)))
+    
+    #for values in histRaw.values():
+        #for values2 in values.values():
+            #hlist.append(dict(zip(hkeys,values2)))
+        
+    print(type(histRaw))    
+        
         
     #getHist = histRaw
-    return render(request,'history.html', {'getHist':hlist})
+    print(hlist)
+
+    historyKeys = []
+
+    return render(request,'history.html', {'getHist':hlist, "tradehistory":histRaw, 'acc':acc})
+
+def ledger(request):
+    rpc = API.API()
+    ledgeData = json.loads(rpc.getLedger().decode("utf-8"))["Data"]
+    return render(request, 'ledger.html', {"ledgeData":ledgeData})

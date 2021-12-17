@@ -52,43 +52,27 @@
                     <thead>
                       <tr>
                         <th scope="col">TradeID</th>
-                        <th scope="col">User</th>
-                        <th scope="col">Balance</th>
+                        <th scope="col">Source</th>
+                        <th scope="col">Destination</th>
+                        <th scope="col">Amount</th>
                         <th scope="col">Type</th>
+                      
                       </tr>
                     </thead>
                     <tbody id="tabBody">
-                      {% for item in getHist %}
+                     <!-- {% for item in getHist %}
                       <tr>
                         <td>{{item.TradeID}}</td>
                         <td>{{item.User}}</td>
                         <td>{{item.Balance}}</td>
                         <td>{{item.Type}}</td>
                       </tr>
-                      {% endfor %}
+                      {% endfor %}-->
                     </tbody>
                   </table>
-                  <!--
-                  <script type="text/JavaScript" id = "hist">
-                    
-                  var mydata = "{{getHist}}";
-                  alert(mydata);
-                      buildTable(mydata)
-                      function buildTable(data){
-                          var table = document.getElementById('tabBody')
-                          for(var i = 0; i < data.length; i++){
-                              var row = `<tr>
-                                          <td>${data[i].TradeID}</td>
-                                          <td>${data[i].User}</td>
-                                          <td>${data[i].Balance}</td>
-                                          <td>${data[i].Type}</td>
-                                        </tr>`
-                              table.innerHTML += row
-                          }
-                      }
-                  </script>
-            
-                -->
+                  {{tradehistory}}
+                  <p></p>
+                  {{acc}}
             </div>
         </div><!--row-->
     </div> <!-- container-fluid-->
