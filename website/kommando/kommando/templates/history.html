@@ -55,24 +55,25 @@
                         <th scope="col">Source</th>
                         <th scope="col">Destination</th>
                         <th scope="col">Amount</th>
-                        <th scope="col">Type</th>
+                        <th scope="col">Date</th>
                       
                       </tr>
                     </thead>
                     <tbody id="tabBody">
-                     <!-- {% for item in getHist %}
+                      {% for item in getHist %}
                       <tr>
-                        <td>{{item.TradeID}}</td>
-                        <td>{{item.User}}</td>
-                        <td>{{item.Balance}}</td>
-                        <td>{{item.Type}}</td>
+                        <td>{{item.tID}}</td>
+                        <td>{{map.item.src}}</td>
+                        <td>{{item.dst}}</td>
+                        <td>{{item.amt}}</td>
+                        <td>{{item.created}}</td>
                       </tr>
-                      {% endfor %}-->
+                      {% endfor %}
                     </tbody>
                   </table>
-                  {{tradehistory}}
+                  
                   <p></p>
-                  {{acc}}
+                  
             </div>
         </div><!--row-->
     </div> <!-- container-fluid-->

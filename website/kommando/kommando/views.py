@@ -145,10 +145,9 @@ def history(request):
     hkeys = ("tID", "src", "dst", "amt", "created")
     hlist = []
 
-    # for values in histRaw.values():
-    # for values2 in values.values():
-    # hlist.append(dict(zip(hkeys,values2)))
-
+    for values in histRaw:
+        hlist.append(dict(zip(hkeys,values)))
+    print(hlist)
     print(type(histRaw))
 
     #getHist = histRaw
@@ -156,7 +155,7 @@ def history(request):
 
     historyKeys = []
 
-    return render(request, 'history.html', {'getHist': hlist, "tradehistory": histRaw, 'acc': acc})
+    return render(request, 'history.html', {'getHist': hlist, "tradehistory": histRaw, 'map': map})
 
 
 def ledger(request):
