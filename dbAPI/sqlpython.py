@@ -4,6 +4,7 @@ import mysql.connector
 import json
 import log
 from mysql.connector.errors import Error
+import datetime
 
 
 class DBTransactor:
@@ -196,9 +197,18 @@ class DBTransactor:
             self.close_cursor(cursor)
             self.close_connection(conn)
             tradeHistory = []
-
+            x=0
+            for col in columns:
+                tradeHistory.append([])
+                tradeHistory[x].append(col[0])
+                tradeHistory[x].append(col[1])
+                tradeHistory[x].append(col[2])
+                tradeHistory[x].append(col[3])
+                tradeHistory[x].append(col[4].strftime("%m/%d/%y"))
+                print(tradeHistory[x])
+                x+=1
             
-            return columns
+            return tradeHistory
         except mysql.connector.Error as error:
             self.close_cursor(cursor)
             self.close_connection(conn)
