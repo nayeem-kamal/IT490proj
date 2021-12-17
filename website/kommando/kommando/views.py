@@ -178,3 +178,6 @@ def ledger(request):
     rpc = API.API()
     ledgeData = json.loads(rpc.getLedger().decode("utf-8"))["Data"]
     return render(request, 'ledger.html', {"ledgeData": ledgeData})
+
+def learn(request):
+    return render(request, 'learn.html')

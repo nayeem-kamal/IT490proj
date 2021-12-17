@@ -9,7 +9,8 @@ urlpatterns = [
     path('accounts.html' , views.accounts),
     path('testRegistration.html',views.contact),
     path('history.html' ,views.history),
-    path('ledger.html', views.ledger)
+    path('ledger.html', views.ledger),
+    path('learn.html',views.learn)
 
 
 ]
