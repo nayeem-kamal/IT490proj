@@ -1,0 +1,12 @@
+[Unit]
+Description=RabbitListener
+After=multi-user.target
+
+[Service]
+Type=simple
+Restart=always
+User=it490
+ExecStart=/usr/bin/python3 /home/it490/path/to/script
+
+[Install]
+WantedBy=multi-user.target
