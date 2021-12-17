@@ -170,6 +170,6 @@ The two APIs being used for free are [CoinMarketCap](https://coinmarketcap.com/)
 ## Authors
 Nayeem Kamal - Front, Back, DMZ, SQL - NHK6 <br > 
 Jared Myers - Deployment, Back End - JM 297 <br >
-Parnell Provilion - Front End - PDP72 <br >
+Parnell Provilon - Front End - PDP72 <br >
 James Lupo - Back End, SQL - JAL97 <br >
 Ibrahima Diallo - Front End - ID55 <br >
