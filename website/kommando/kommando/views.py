@@ -137,9 +137,11 @@ def history(request):
     #acc = ast.literal_eval(json.loads(json.dumps(getHist.getAccounts(email).decode("UTF-8"))))
     acc = {'BTC': (31, 'newuser@gmail.com', 100.0, 'BTC'), 'ETH': (32, 'newuser@gmail.com', -
                                                                    100.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')}
-    for i in acc.keys:
-        map.update({acc[i][0]})
+    for i in acc.keys():
+        map[i] = acc[i][0]
+    newHist = ()
 
+            
     hkeys = ("tID", "src", "dst", "amt", "created")
     hlist = []
 
