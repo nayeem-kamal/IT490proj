@@ -10,7 +10,7 @@ import json
 import ast
 import datetime
 
-
+email = ""
 def contact(request):
     fname = []
     lname = []
@@ -74,71 +74,95 @@ def apiTest(request):
 
 
 def login(request):
-
-    email = []
+    global email
+    em = []
     passwd = []
     login = DB.DB()
     print("test")
 
     if request.method == 'POST':
+        email = ""
         form = loginForm(request.POST)
         print("testpost")
         print(request.POST)
         if form.is_valid():
 
-            email = form.cleaned_data['email']
+            em = form.cleaned_data['email']
+            email = em
             passwd = form.cleaned_data['password']
             # login.login(email,passwd)
-            rawLogin = json.dumps(login.login(email, passwd).decode("UTF-8"))
-            print(email, passwd, "hi")
+            rawLogin = json.dumps(login.login(em, passwd).decode("UTF-8"))
+            print(em, passwd, email)
         form = loginForm()
         return render(request, 'login.html', {'form': form})
     else:
         form = loginForm(request.GET)
         print("testget")
         if form.is_valid():
+            email = ""
             print("testif")
 
-            email = form.cleaned_data['email']
+            em = form.cleaned_data['email']
+            email = em
             passwd = form.cleaned_data['password']
             login.login(email, passwd)
 
-            print(email, passwd,)
+            print(em, passwd,email)
             form = loginForm()
+            return render(request, 'accounts.html', {'form': form})
         else:
             print("this returned false")
         return render(request, 'login.html', {'form': form})
 
 
 def trade(request):
+    print(email)
     source = []
     destination = []
     amount = []
+    form = tradeForm(request.POST) 
+    print(dict(form.data))
+    
     if request.method == 'POST':
-        form = tradeForm(request.POST)
+        #form = tradeForm(request.POST)
         if form.is_valid():
-            
+            formdict = dict(form.data)
+            print(True)
             trade = DB.DB()
-            source = form.cleaned_data['source']
-            destination = form.cleaned_data['destination']
-            amount = form.cleaned_data['amount']
+            source = formdict['source'][0]
+            destination = formdict['destination'][0]
+            amount = formdict['amount'][0]
             pub = form.cleaned_data['pub']
-            trade.trade(source,destination,amount)
-        form = tradeForm() 
+            trade.trade(source,destination,amount,email)
+        else:
+            print(False)
+        
     return render(request, 'trade.html',{'form':form})
 
 
 def accounts(request):
-    email = "newuser@gmail.com"
-    #dbAcc = DB.DB()
-    #getAcct = dbAcc.getAccounts(email)
-    getAcct = b"{'BTC': (31, 'newuser@gmail.com', 0.0, 'BTC'), 'ETH': (32, 'newuser@gmail.com', 0.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')}"
+    global email
+    dbAcc = DB.DB()
+    getAcct = eval(json.loads(json.dumps(dbAcc.getAccounts(email).decode("UTF-8"))))
+    aKeys = ["USD", "BTC", "ETH"]
+    aValues = []
+    aList = []
+    i = 0
+    for values in getAcct.values():
+        #aValues.append(values[2])
+        aList.append({aKeys[i]:values[2]})
+        #aValues.append(values[2])
+        print(aValues)
+        i+=1
+        #aList.append(dict(zip(aKeys,aValues)))
+        
+    #getAcct = b"{'BTC': (31, 'newuser@gmail.com', 0.0, 'BTC'), 'ETH': (32, 'newuser@gmail.com', 0.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')}"
     print(getAcct)
-    return render(request, 'accounts.html', {'getAcct': getAcct})
+    return render(request, 'accounts.html', {'getAcct': aList, 'aKeys':aKeys})
 
 
 def history(request):
-    email = "newuser1@gmail.com"
+    
     getHist = DB.DB()
 
     # histRaw = b"{'BTC': (31, 'newuser@gmail.com', 0.0, 'BTC'),
