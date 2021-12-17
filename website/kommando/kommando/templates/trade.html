@@ -58,41 +58,10 @@
 
     <div style=" top:0%; left: 51%; 
     width:49%; height:49%;">
-        <form action="">
-            <div class="card" style="width: 18rem;">
-                <!--<img class="card-img-top" src="crypto.webp" alt="Card image cap">-->
-                <div class="card-body">
-                  <h5 class="card-title">Buy some cryptocurrency!</h5>
-                  <label>Available Funds: <input type="text" value="$1000" readonly></label>
-                </div>
-                <ul class="list-group list-group-flush">
-                  <li class="list-group-item">
-                    <label>Choose a currency:
-                    <select id="currencies" name="currencies">
-                      <option value="bitcoin">Bitcoin</option>
-                      <option value="ethereum">Ethereum</option>
-                      
-                    </select> 
-                    </label>
-                  </li>
-                  <li class="list-group-item">
-                    <label >Quantity(1-5)
-                    <input type="number" id="quantity" name="quantity" min="1" max="5">
-                    </label>
-                  </li>
-                  <li>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                      <label class="form-check-label" for="flexCheckDefault">
-                        Make my trade public
-                      </label>
-                    </div>
-                  </li>
-                </ul>
-                <div class="card-body">
-                    <input type="submit" value="Buy Currency">
-                </div>
-              </div>
+        <form action="" method="POST">
+          {% csrf_token %}
+          {{form}}
+            <input type="submit" class="tradeSubmit" value="Buy Currency"/>
         </form>
     </div>
 

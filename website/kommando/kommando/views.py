@@ -5,6 +5,7 @@ from .forms import ContactForm
 from . import API
 from . import DB
 from .loginForm import loginForm
+from .trade import tradeForm
 import json
 import ast
 import datetime
@@ -110,8 +111,21 @@ def login(request):
 
 
 def trade(request):
-
-    return render(request, 'trade.html')
+    source = []
+    destination = []
+    amount = []
+    if request.method == 'POST':
+        form = tradeForm(request.POST)
+        if form.is_valid():
+            
+            trade = DB.DB()
+            source = form.cleaned_data['source']
+            destination = form.cleaned_data['destination']
+            amount = form.cleaned_data['amount']
+            pub = form.cleaned_data['pub']
+            trade.trade(source,destination,amount)
+        form = tradeForm() 
+    return render(request, 'trade.html',{'form':form})
 
 
 def accounts(request):
@@ -134,12 +148,13 @@ def history(request):
     #histRaw = json.dumps(getHist.tradeHistory(email).decode("UTF-8"))
 
     map = {}
-    #acc = ast.literal_eval(json.loads(json.dumps(getHist.getAccounts(email).decode("UTF-8"))))
-    acc = {'BTC': (31, 'newuser@gmail.com', 100.0, 'BTC'), 'ETH': (32, 'newuser@gmail.com', -
-                                                                   100.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')}
+    acc = ast.literal_eval(json.loads(json.dumps(getHist.getAccounts(email).decode("UTF-8"))))
+    #acc = {'BTC': (31, 'newuser@gmail.com', 100.0, 'BTC'), 'ETH': (32, 'newuser@gmail.com', -
+      #                                                             100.0, 'ETH'), 'USD': (30, 'newuser@gmail.com', 10000.0, 'USD')}
     for i in acc.keys():
         map[i] = acc[i][0]
     newHist = ()
+    inv_map = {v: k for k, v in map.items()}
 
             
     hkeys = ("tID", "src", "dst", "amt", "created")
@@ -152,10 +167,11 @@ def history(request):
 
     #getHist = histRaw
     print(hlist)
+    print(inv_map)
 
     historyKeys = []
 
-    return render(request, 'history.html', {'getHist': hlist, "tradehistory": histRaw, 'map': map})
+    return render(request, 'history.html', {'getHist': hlist, "tradehistory": histRaw, 'map': inv_map})
 
 
 def ledger(request):

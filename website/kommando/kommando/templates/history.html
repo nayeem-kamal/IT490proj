@@ -52,8 +52,8 @@
                     <thead>
                       <tr>
                         <th scope="col">TradeID</th>
-                        <th scope="col">Source</th>
-                        <th scope="col">Destination</th>
+                        <th scope="col">SourceID</th>
+                        <th scope="col">DestinationID</th>
                         <th scope="col">Amount</th>
                         <th scope="col">Date</th>
                       
@@ -61,13 +61,15 @@
                     </thead>
                     <tbody id="tabBody">
                       {% for item in getHist %}
+                      
                       <tr>
                         <td>{{item.tID}}</td>
-                        <td>{{map.item.src}}</td>
+                        <td>{{item.src}}</td>
                         <td>{{item.dst}}</td>
                         <td>{{item.amt}}</td>
                         <td>{{item.created}}</td>
                       </tr>
+                      
                       {% endfor %}
                     </tbody>
                   </table>
