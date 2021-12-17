@@ -168,8 +168,8 @@ mysql -u root -p deployment < /path/deployment.sql
 The two APIs being used for free are [CoinMarketCap](https://coinmarketcap.com/) and [CryptoCompare](https://www.cryptocompare.com/) < br>
 
 ## Authors
-Nayeem Kamal - Front, Back, DMZ, SQL
-Jared Myers - Deployment, Back End
-Parnell Provilion - Front End
-James Lupo - Back End, SQL
-Ibrahima Diallo - Front End
+Nayeem Kamal - Front, Back, DMZ, SQL <br >
+Jared Myers - Deployment, Back End <br >
+Parnell Provilion - Front End <br >
+James Lupo - Back End, SQL <br >
+Ibrahima Diallo - Front End <br >
